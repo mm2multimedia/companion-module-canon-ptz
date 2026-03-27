@@ -7,17 +7,76 @@ const API = require('./api.js')
 
 module.exports = {
 
-	async sendPTZ(command, str) {
+	/**
+	 * Get camera choices for dropdowns
+	 */
+	getCameraChoicesArray() {
+		if (!this.configuredCameras || this.configuredCameras.length === 0) {
+			return [{ id: '0', label: 'No cameras configured' }];
+		}
+		return this.configuredCameras.map((cam) => ({
+			id: String(cam.index),
+			label: `Camera ${cam.index} (${cam.ip})`,
+		}));
+	},
+
+	/**
+	 * Get camera selection options (text input only)
+	 */
+	getCameraSelectionOptions() {
+		return [
+			{
+				type: 'textinput',
+				label: 'Camera Index',
+				id: 'camera_index',
+				default: '1',
+				tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+			},
+		];
+	},
+
+	async sendPTZ(command, str, cameraIndex) {
 		let self = this;
 
 		try {
 			if (str !== undefined) {
-				const connection = new API(self.config)
+				// Get camera by index
+				let cameraIP = self.config.host; // Fallback for old code
+
+				let resolvedIndex = null;
+				if (cameraIndex !== undefined && cameraIndex !== null && cameraIndex.toString().trim() !== '') {
+					// Resolve Companion variables like $(custom:selectedCameraIndex)
+					const resolvedValue = await self.parseVariablesInString(cameraIndex.toString());
+					resolvedIndex = resolvedValue.trim();
+				}
+
+				if (resolvedIndex !== null) {
+					const parsedIndex = parseInt(resolvedIndex);
+					if (!isNaN(parsedIndex)) {
+						const camera = self.getCameraByIndex(parsedIndex);
+						if (!camera) {
+							self.log('error', `Camera with index ${parsedIndex} not found. Configured cameras: ${self.getAllCameraIndexes().join(', ')}`);
+							return;
+						}
+						cameraIP = camera.host;
+					} else {
+						self.log('error', `Invalid camera index: "${resolvedIndex}" (must be a number). If using a variable, make sure it's defined and resolves to a number.`);
+						return;
+					}
+				} else if (self.configuredCameras && self.configuredCameras.length > 0) {
+					// Use first configured camera as default
+					cameraIP = self.configuredCameras[0].ip;
+				}
+
+				const connection = new API({
+					...self.config,
+					host: cameraIP
+				});
 
 				let cmd = `${command}${str}`
 
 				if (self.config.verbose) {
-					self.log('debug', `Sending command: ${cmd}`);
+					self.log('debug', `Sending PTZ command to camera index ${resolvedIndex} (${cameraIP}): ${cmd}`);
 				}
 
 				const result = await connection.sendRequest(cmd)
@@ -143,10 +202,10 @@ module.exports = {
 		if (s.powerState == true) {
 			actions.powerOff = {
 				name: 'System - Power Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'cmd=standby'
-					self.sendPTZ(self.powerCommand, cmd);
+					self.sendPTZ(self.powerCommand, cmd, action.options.camera_index);
 					self.data.powerState = 'standby';
 					self.checkVariables();
 					self.checkFeedbacks();
@@ -156,10 +215,10 @@ module.exports = {
 
 			actions.powerOn = {
 				name: 'System - Power On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'cmd=idle'
-					self.sendPTZ(self.powerCommand, cmd);
+					self.sendPTZ(self.powerCommand, cmd, action.options.camera_index);
 					self.data.powerState = 'idle';
 					self.checkVariables();
 					self.checkFeedbacks();
@@ -169,7 +228,7 @@ module.exports = {
 
 			actions.powerToggle = {
 				name: 'System - Power Toggle',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.data.powerState === 'idle') {
 						cmd = 'cmd=standby';
@@ -203,7 +262,7 @@ module.exports = {
 					let cameraName = await self.parseVariablesInString(action.options.name);
 					cmd = 'c.1.name.utf8=' + cameraName;
 					if (cmd !== '') {
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 				}
 			}
@@ -212,14 +271,14 @@ module.exports = {
 		if (s.tallyProgram == true) {
 			actions.tallyProgramOff = {
 				name: 'System - Tally Off (Program)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'tally=off&tally.mode=program'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.data.tallyProgram = 'off';
 					if (self.data.tallyPreview === 'on') {
 						cmd = 'tally=on&tally.mode=preview'
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -227,10 +286,10 @@ module.exports = {
 
 			actions.tallyProgramOn = {
 				name: 'System - Tally On (Program)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'tally=on&tally.mode=program'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.data.tallyProgram = 'on';
 					self.getCameraInformation_Delayed();
 				}
@@ -240,14 +299,14 @@ module.exports = {
 		if (s.tallyPreview == true) {
 			actions.tallyPreviewOff = {
 				name: 'System - Tally Off (Preview)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'tally=off&tally.mode=preview'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.data.tallyPreview = 'off';
 					if (self.data.tallyProgram === 'on') {
 						cmd = 'tally=on&tally.mode=program'
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -255,10 +314,10 @@ module.exports = {
 
 			actions.tallyPreviewOn = {
 				name: 'System - Tally On (Preview)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'tally=on&tally.mode=preview'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.data.tallyPreview = 'on';
 					self.getCameraInformation_Delayed();
 				}
@@ -266,7 +325,7 @@ module.exports = {
 
 			actions.tallyToggle = {
 				name: 'System - Tally Toggle',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.data.tallyProgram === 'on') {
 						cmd = 'tally=on&tally.mode=preview';
@@ -278,7 +337,7 @@ module.exports = {
 						self.data.tallyProgram = 'on';
 						self.data.tallyPreview = 'off';
 					}	
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -308,7 +367,7 @@ module.exports = {
 						cmd = 'c.1.zoom.mode=dzoom'
 						self.data.digitalZoom = 'dzoom';
 					}
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -338,7 +397,7 @@ module.exports = {
 						cmd = 'c.1.is=on1'
 						self.data.imageStabilization = 'on1';
 					}
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -359,7 +418,7 @@ module.exports = {
 				callback: async (action) => {
 					cmd = await self.parseVariablesInString(action.options.command);
 					if (cmd !== '') {
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						self.getCameraInformation_Delayed();
 					}
 				}
@@ -373,154 +432,258 @@ module.exports = {
 		if (s.panTilt == true) {
 			actions.left = {
 				name: 'Pan/Tilt - Pan Left',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=left&pan.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 				}
 			}
 
 			actions.right = {
 				name: 'Pan/Tilt - Pan Right',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=right&pan.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.up = {
 				name: 'Pan/Tilt - Tilt Up',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'tilt=up&tilt.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.down = {
 				name: 'Pan/Tilt - Tilt Down',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'tilt=down&tilt.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.upLeft = {
 				name: 'Pan/Tilt - Up Left',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=left&pan.speed.dir=' + self.ptSpeed + '&tilt=up&tilt.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.upRight = {
 				name: 'Pan/Tilt - Up Right',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=right&pan.speed.dir=' + self.ptSpeed + '&tilt=up&tilt.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.downLeft = {
 				name: 'Pan/Tilt - Down Left',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=left&pan.speed.dir=' + self.ptSpeed + '&tilt=down&tilt.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.downRight = {
 				name: 'Pan/Tilt - Down Right',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=right&pan.speed.dir=' + self.ptSpeed + '&tilt=down&tilt.speed.dir=' + self.ptSpeed;
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.stop = {
 				name: 'Pan/Tilt - Stop',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=stop&tilt=stop';
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.stopPan = {
 				name: 'Pan/Tilt - Stop Pan Only',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=stop';
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.stopTilt = {
 				name: 'Pan/Tilt - Stop Tilt Only',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'tilt=stop';
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.home = {
 				name: 'Pan/Tilt - Home',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'pan=0&tilt=0';
 					self.stopCustomTrace();
 					self.checkVariables();
 					self.checkFeedbacks();
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.ptInitialization = {
 				name: 'Pan/Tilt - Initialize',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'cmd=platform_reset'
-					self.sendPTZ(self.maintainCommand, cmd)
+					self.sendPTZ(self.maintainCommand, cmd, action.options.camera_index)
 				}
 			}
 		}
@@ -528,7 +691,7 @@ module.exports = {
 		if (s.ptSpeed == true) {
 			actions.ptSpeedU = {
 				name: 'Pan/Tilt - Speed Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.ptSpeedIndex == 0) {
 						self.ptSpeedIndex = 0
@@ -543,7 +706,7 @@ module.exports = {
 
 			actions.ptSpeedD = {
 				name: 'Pan/Tilt - Speed Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.ptSpeedIndex == c.CHOICES_PT_SPEED.length) {
 						self.ptSpeedIndex = c.CHOICES_PT_SPEED.length
@@ -593,28 +756,52 @@ module.exports = {
 		if (s.zoom == true) {
 			actions.zoomI = {
 				name: 'Lens - Zoom In',
-				options: [],
+				options: [
+					{
+						type: 'dropdown',
+						label: 'Camera',
+						id: 'camera_index',
+						default: (self.configuredCameras && self.configuredCameras.length > 0) ? String(self.configuredCameras[0].index) : '1',
+						choices: self.getCameraChoicesArray(),
+					},
+				],
 				callback: async (action) => {
 					cmd = 'zoom=tele&zoom.speed.dir=' + self.zSpeed
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.zoomO = {
 				name: 'Lens - Zoom Out',
-				options: [],
+				options: [
+					{
+						type: 'dropdown',
+						label: 'Camera',
+						id: 'camera_index',
+						default: (self.configuredCameras && self.configuredCameras.length > 0) ? String(self.configuredCameras[0].index) : '1',
+						choices: self.getCameraChoicesArray(),
+					},
+				],
 				callback: async (action) => {
 					cmd = 'zoom=wide&zoom.speed.dir=' + self.zSpeed
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.zoomS = {
 				name: 'Lens - Zoom Stop',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					cmd = 'zoom=stop'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 		}
@@ -634,7 +821,7 @@ module.exports = {
 				callback: async (action) => {
 					let zoomValue = await self.parseVariablesInString(action.options.value);
 					cmd = 'zoom=' + zoomValue;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 		}
@@ -671,7 +858,7 @@ module.exports = {
 
 			actions.zSpeedU = {
 				name: 'Lens - Zoom Speed Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.zSpeedIndex == 0) {
 						self.zSpeedIndex = 0
@@ -686,7 +873,7 @@ module.exports = {
 
 			actions.zSpeedD = {
 				name: 'Lens - Zoom Speed Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.zSpeedIndex == c.CHOICES_ZOOM_SPEED().length) {
 						self.zSpeedIndex = c.CHOICES_ZOOM_SPEED().length
@@ -703,28 +890,28 @@ module.exports = {
 		if (s.focus == true) {
 			actions.focusN = {
 				name: 'Lens - Focus Near',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'focus.action=near'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.focusF = {
 				name: 'Lens - Focus Far',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'focus.action=far'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 
 			actions.focusS = {
 				name: 'Lens - Focus Stop',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'focus.action=stop'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 		}
@@ -759,14 +946,14 @@ module.exports = {
 					self.checkVariables();
 					
 					cmd = 'focus.speed=' + self.data.focusSpeed;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.fSpeedU = {
 				name: 'Lens - Focus Speed Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.fSpeedIndex <= 0) {
 						self.fSpeedIndex = 0
@@ -779,14 +966,14 @@ module.exports = {
 					self.checkVariables();
 
 					cmd = 'focus.speed=' + self.data.focusSpeed;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.fSpeedD = {
 				name: 'Lens - Focus Speed Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.fSpeedIndex >= c.CHOICES_FOCUS_SPEED.length) {
 						self.fSpeedIndex = c.CHOICES_FOCUS_SPEED.length - 1
@@ -799,14 +986,14 @@ module.exports = {
 					self.checkVariables();
 
 					cmd = 'focus.speed=' + self.data.focusSpeed;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.fSpeedToggle = {
 				name: 'Lens - Focus Speed Toggle',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.fSpeedIndex >= c.CHOICES_FOCUS_SPEED.length - 1) {
 						self.fSpeedIndex = 0
@@ -820,7 +1007,7 @@ module.exports = {
 					self.checkVariables();
 					
 					cmd = 'focus.speed=' + self.data.focusSpeed;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -830,6 +1017,13 @@ module.exports = {
 			actions.focusM = {
 				name: 'Lens - Focus Mode (Auto/Manual Focus)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Auto / Manual Focus',
@@ -850,14 +1044,14 @@ module.exports = {
 						cmd = 'focus=manual'
 						self.data.focusMode = 'manual';
 					}
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.focusToggle = {
 				name: 'Lens - Toggle Focus Mode (Auto/Manual Focus)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.data.focusMode === 'auto') {
 						self.data.focusMode = 'manual';
@@ -866,7 +1060,7 @@ module.exports = {
 						self.data.focusMode = 'auto';
 					}
 					cmd = 'focus=' + self.data.focusMode;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -875,10 +1069,10 @@ module.exports = {
 		if (s.oneshotAutoFocus == true) {
 			actions.focusOSAF = {
 				name: 'Lens - Focus - One Shot Auto Focus',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					cmd = 'focus=one_shot'
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 				}
 			}
 		}
@@ -892,6 +1086,13 @@ module.exports = {
 				name: 'Exposure Shooting Mode',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Exposure Shooting Mode',
 						id: 'val',
@@ -901,7 +1102,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = s.exposureShootingMode.cmd + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 										
 					self.getCameraInformation_Delayed();
 				}
@@ -913,6 +1114,13 @@ module.exports = {
 				name: 'Exposure Mode',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Exposure Mode',
 						id: 'val',
@@ -922,10 +1130,10 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.shooting=manual';
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.exposureShootingMode = 'manual';
 					cmd = 'c.1.exp=' + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.exposureMode = action.options.val;
 					self.getCameraInformation_Delayed();
 				}
@@ -933,7 +1141,7 @@ module.exports = {
 
 			actions.exposureModeToggle = {
 				name: 'Exposure Mode Toggle',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					self.exposureModeIndex = s.exposureMode.dropdown.findIndex((EXPOSUREMODE) => EXPOSUREMODE.id == self.data.exposureMode);
 
@@ -952,16 +1160,16 @@ module.exports = {
 
 					if (self.data.exposureMode === 'fullauto') {
 						cmd = 'c.1.shooting=fullauto';
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 						self.data.exposureShootingMode = 'fullauto';
 						self.data.exposureMode = 'fullauto';
 					}
 					else {
 						cmd = 'c.1.shooting=manual';
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 						self.data.exposureShootingMode = 'manual';
 						cmd = 'c.1.exp=' + self.data.exposureMode;
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}		
 					self.getCameraInformation_Delayed();
 				}
@@ -987,7 +1195,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.ae.gainlimit.max=' + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeGainLimitMax = action.options.val;
 					self.getCameraInformation_Delayed();
 				}
@@ -1008,7 +1216,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.ae.brightness=' + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeBrightness = action.options.val;
 					self.getCameraInformation_Delayed();
 				}
@@ -1029,7 +1237,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.ae.photometry=' + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aePhotometry = action.options.val;
 					self.getCameraInformation_Delayed();
 				}
@@ -1050,7 +1258,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.ae.flickerreduct=' + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeFlickerReduct = action.options.val;
 					self.getCameraInformation_Delayed();
 				}
@@ -1076,7 +1284,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.ae.resp=' + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeResp = action.options.val;
 					self.getCameraInformation_Delayed();
 				}
@@ -1091,6 +1299,13 @@ module.exports = {
 			actions.shutterM = {
 				name: 'Exposure - Shutter Mode (Auto Shutter)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Auto / Manual Shutter',
@@ -1109,14 +1324,14 @@ module.exports = {
 					if (action.options.bol == 1) {
 						cmd = 'c.1.me.shutter.mode=speed'
 					}
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.shutterToggle = {
 				name: 'Exposure - Toggle Shutter Mode (Auto/Manual Shutter)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.data.shutterMode === 'auto') {
 						self.data.shutterMode = 'speed';
@@ -1125,14 +1340,22 @@ module.exports = {
 						self.data.shutterMode = 'auto';
 					}
 					cmd = 'c.1.me.shutter.mode=' + self.data.shutterMode;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.shutterUp = {
 				name: 'Exposure - Shutter Up',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					if (self.shutterIndex == s.shutter.dropdown.length) {
 						self.shutterIndex = s.shutter.dropdown.length
@@ -1144,13 +1367,13 @@ module.exports = {
 
 					if (self.shutterValue === 'auto') {
 						cmd = 'c.1.me.shutter.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.shutter.mode=speed'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						cmd = s.shutter.cmd + self.shutterValue
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1158,7 +1381,15 @@ module.exports = {
 
 			actions.shutterDown = {
 				name: 'Exposure - Shutter Down',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					if (self.shutterIndex == 0) {
 						self.shutterIndex = 0
@@ -1171,13 +1402,13 @@ module.exports = {
 
 					if (self.shutterValue === 'auto') {
 						cmd = 'c.1.me.shutter.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.shutter.mode=speed'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						cmd = s.shutter.cmd + self.shutterValue
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1186,6 +1417,13 @@ module.exports = {
 			actions.shutterSet = {
 				name: 'Exposure - Set Shutter',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Shutter Setting',
@@ -1200,15 +1438,15 @@ module.exports = {
 
 					if (self.shutterValue === 'auto') {
 						cmd = 'c.1.me.shutter.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.shutter.mode=speed'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 
 						self.shutterIndex = s.shutter.dropdown.findIndex((SHUTTER) => SHUTTER.id == action.options.val);
 						cmd = s.shutter.cmd + self.shutterValue;
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1223,6 +1461,13 @@ module.exports = {
 			actions.irisU = {
 				name: 'Exposure - Iris Up',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'number',
 						label: 'Steps',
@@ -1251,13 +1496,13 @@ module.exports = {
 					
 					if (self.irisValue === 'auto') {
 						cmd = 'c.1.me.diaphragm.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.diaphragm.mode=manual'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						cmd = s.iris.cmd + self.irisValue
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1266,6 +1511,13 @@ module.exports = {
 			actions.irisD = {
 				name: 'Exposure - Iris Down',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'number',
 						label: 'Steps',
@@ -1294,13 +1546,13 @@ module.exports = {
 					
 					if (self.irisValue === 'auto') {
 						cmd = 'c.1.me.diaphragm.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.diaphragm.mode=manual'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						cmd = s.iris.cmd + self.irisValue
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1309,6 +1561,13 @@ module.exports = {
 			actions.irisS = {
 				name: 'Exposure - Set Iris',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Iris Setting',
@@ -1324,14 +1583,14 @@ module.exports = {
 
 					if (self.irisValue === 'auto') {
 						cmd = 'c.1.me.diaphragm.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.diaphragm.mode=manual'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 
 						cmd = s.iris.cmd + self.irisValue;
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1340,6 +1599,13 @@ module.exports = {
 			actions.irisM = {
 				name: 'Exposure - Iris Mode (Auto Iris)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Auto / Manual Iris',
@@ -1358,14 +1624,14 @@ module.exports = {
 					if (action.options.bol == 1) {
 						cmd = 'c.1.me.diaphragm.mode=manual'
 					}
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.irisToggle = {
 				name: 'Exposure - Toggle Iris Mode (Auto/Manual Iris)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.data.irisMode === 'auto') {
 						self.data.irisMode = 'manual';
@@ -1374,7 +1640,7 @@ module.exports = {
 						self.data.irisMode = 'auto';
 					}
 					cmd = 'c.1.me.diaphragm.mode=' + self.data.irisMode;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1387,7 +1653,15 @@ module.exports = {
 
 			actions.gainU = {
 				name: 'Exposure - Gain Up',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					if (self.gainIndex == s.gain.dropdown.length) {
 						self.gainIndex = s.gain.dropdown.length
@@ -1399,13 +1673,13 @@ module.exports = {
 
 					if (self.gainValue === 'auto') {
 						cmd = 'c.1.me.gain.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.gain.mode=manual'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						cmd = s.gain.cmd + self.gainValue
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1413,7 +1687,15 @@ module.exports = {
 
 			actions.gainD = {
 				name: 'Exposure - Gain Down',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					if (self.gainIndex == 0) {
 						self.gainIndex = 0
@@ -1425,13 +1707,13 @@ module.exports = {
 
 					if (self.gainValue === 'auto') {
 						cmd = 'c.1.me.gain.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.gain.mode=manual'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 						cmd = s.gain.cmd + self.gainValue
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1439,7 +1721,7 @@ module.exports = {
 
 			actions.gainToggle = {
 				name: 'Exposure - Toggle Gain Mode (Auto/Manual Gain)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.data.gainMode === 'auto') {
 						self.data.gainMode = 'manual';
@@ -1448,7 +1730,7 @@ module.exports = {
 						self.data.gainMode = 'auto';
 					}
 					cmd = 'c.1.me.gain.mode=' + self.data.gainMode;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1456,6 +1738,13 @@ module.exports = {
 			actions.gainMode = {
 				name: 'Exposure - Gain Mode (Auto/Manual Gain)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Auto / Manual Gain',
@@ -1474,7 +1763,7 @@ module.exports = {
 					if (action.options.bol == 'manual') {
 						cmd = 'c.1.me.gain.mode=manual'
 					}
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1482,6 +1771,13 @@ module.exports = {
 			actions.gainS = {
 				name: 'Exposure - Set Gain',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Gain setting',
@@ -1495,17 +1791,17 @@ module.exports = {
 
 					if (self.gainValue === 'auto') {
 						cmd = 'c.1.me.gain.mode=auto'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					else {
 						cmd = 'c.1.me.gain.mode=manual'
-						self.sendPTZ(self.ptzCommand, cmd)
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 
 						self.gainIndex = s.gain.dropdown.findIndex((GAIN) => GAIN.id == action.options.val);
 						self.gainValue = action.options.val;
 						self.data.gainValue = self.gainValue;
 						cmd = s.gain.cmd + self.gainValue;
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
 				}
@@ -1519,7 +1815,7 @@ module.exports = {
 
 			actions.ndfilterUp = {
 				name: 'Exposure - ND Filter Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.ndfilterIndex == s.ndfilter.dropdown.length) {
 						self.ndfilterIndex = s.ndfilter.dropdown.length
@@ -1529,14 +1825,14 @@ module.exports = {
 					self.ndfilterValue = s.ndfilter.dropdown[self.ndfilterIndex].id
 					self.data.ndfilterValue = self.ndfilterValue;
 					cmd = s.ndfilter.cmd + self.ndfilterValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.ndfilterDown = {
 				name: 'Exposure - ND Filter Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.ndfilterIndex == 0) {
 						self.ndfilterIndex = 0
@@ -1546,7 +1842,7 @@ module.exports = {
 					self.ndfilterValue = s.ndfilter.dropdown[self.ndfilterIndex].id
 					self.data.ndfilterValue = self.ndfilterValue;
 					cmd = s.ndfilter.cmd + self.ndfilterValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1567,7 +1863,7 @@ module.exports = {
 					self.ndfilterValue = action.options.val;
 					self.data.ndfilterValue = self.ndfilterValue;
 					cmd = s.ndfilter.cmd + self.ndfilterValue;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1580,7 +1876,15 @@ module.exports = {
 
 			actions.pedestalUp = {
 				name: 'Exposure - Pedestal Up',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					if (self.pedestalIndex == s.pedestal.dropdown.length) {
 						self.pedestalIndex = s.pedestal.dropdown.length
@@ -1590,14 +1894,22 @@ module.exports = {
 					self.pedestalValue = s.pedestal.dropdown[self.pedestalIndex].id
 					self.data.pedestalValue = self.pedestalValue;
 					cmd = s.pedestal.cmd + self.pedestalValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.pedestalDown = {
 				name: 'Exposure - Pedestal Down',
-				options: [],
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
 				callback: async (action) => {
 					if (self.pedestalIndex == 0) {
 						self.pedestalIndex = 0
@@ -1607,7 +1919,7 @@ module.exports = {
 					self.pedestalValue = s.pedestal.dropdown[self.pedestalIndex].id
 					self.data.pedestalValue = self.pedestalValue;
 					cmd = s.pedestal.cmd + self.pedestalValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1615,6 +1927,13 @@ module.exports = {
 			actions.pedestalSet = {
 				name: 'Exposure - Set Pedestal',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Pedestal Setting',
@@ -1628,7 +1947,7 @@ module.exports = {
 					self.pedestalValue = s.pedestal.dropdown[self.pedestalIndex].id
 					self.data.pedestalValue = self.pedestalValue;
 					cmd = s.pedestal.cmd + self.pedestalValue;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1647,6 +1966,13 @@ module.exports = {
 				name: 'White Balance - Set Mode',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'White Balance Mode Setting',
 						id: 'val',
@@ -1656,14 +1982,14 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = s.whitebalanceMode.cmd + action.options.val;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.whitebalanceModeToggle = {
 				name: 'White Balance Mode Toggle',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					self.whitebalanceModeIndex = s.whitebalanceMode.dropdown.findIndex((WBMODE) => WBMODE.id == self.data.whitebalanceMode);
 
@@ -1681,7 +2007,7 @@ module.exports = {
 					self.data.whitebalanceMode = self.whitebalanceMode;
 
 					cmd = s.whitebalanceMode.cmd + self.data.whitebalanceMode;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1689,6 +2015,13 @@ module.exports = {
 			actions.whitebalanceCalibration = {
 				name: 'White Balance Calibration',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'White Balance Mode',
@@ -1699,7 +2032,7 @@ module.exports = {
 				],
 				callback: async (action) => {
 					cmd = 'c.1.wb.action=one_shot_' + action.options.mode;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1711,7 +2044,7 @@ module.exports = {
 			}
 			actions.kelvinUp = {
 				name: 'White Balance - Kelvin Value Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.kelvinIndex >= s.kelvin.dropdown.length) {
 						self.kelvinIndex = s.kelvin.dropdown.length
@@ -1721,14 +2054,14 @@ module.exports = {
 					self.kelvinValue = s.kelvin.dropdown[self.kelvinIndex].id
 					self.data.kelvinValue = self.kelvinValue;
 					cmd = s.kelvin.cmd + self.kelvinValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.kelvinDown = {
 				name: 'White Balance - Kelvin Value Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.kelvinIndex <= 0) {
 						self.kelvinIndex = 0
@@ -1738,7 +2071,7 @@ module.exports = {
 					self.kelvinValue = s.kelvin.dropdown[self.kelvinIndex].id
 					self.data.kelvinValue = self.kelvinValue;
 					cmd = s.kelvin.cmd + self.kelvinValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1759,7 +2092,7 @@ module.exports = {
 					self.kelvinValue = action.options.val;
 					self.data.kelvinValue = self.kelvinValue;
 					cmd = s.kelvin.cmd + self.kelvinValue;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1771,7 +2104,7 @@ module.exports = {
 			}
 			actions.rGainUp = {
 				name: 'White Balance - Red Gain Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.rGainIndex >= s.rGain.dropdown.length) {
 						self.rGainIndex = s.rGain.dropdown.length
@@ -1781,14 +2114,14 @@ module.exports = {
 					self.rGainValue = s.rGain.dropdown[self.rGainIndex].id
 					self.data.rGainValue = self.rGainValue;
 					cmd = s.rGain.cmd + self.rGainValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.rGainDown = {
 				name: 'White Balance - Red Gain Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.rGainIndex <= 0) {
 						self.rGainIndex = 0
@@ -1798,7 +2131,7 @@ module.exports = {
 					self.rGainValue = s.rGain.dropdown[self.rGainIndex].id
 					self.data.rGainValue = self.rGainValue;
 					cmd = s.rGain.cmd + self.rGainValue
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1819,7 +2152,7 @@ module.exports = {
 					self.rGainValue = action.options.val;
 					self.data.rGainValue = self.rGainValue;
 					cmd = s.rGain.cmd + self.rGainValue;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1831,7 +2164,7 @@ module.exports = {
 			}
 			actions.bGainUp = {
 				name: 'White Balance - Blue Gain Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.bGainIndex >= s.bGain.dropdown.length) {
 						self.bGainIndex = s.bGain.dropdown.length
@@ -1841,14 +2174,14 @@ module.exports = {
 					self.bGainValue = s.bGain.dropdown[self.bGainIndex].id
 					self.data.bGainValue = self.bGainValue;
 					cmd = s.bGain.cmd + self.bGainValue;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
 
 			actions.bGainDown = {
 				name: 'White Balance - Blue Gain Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					if (self.bGainIndex <= 0) {
 						self.bGainIndex = 0
@@ -1858,7 +2191,7 @@ module.exports = {
 					self.bGainValue = s.bGain.dropdown[self.bGainIndex].id
 					self.data.bGainValue = self.bGainValue;
 					cmd = s.bGain.cmd + self.bGainValue;
-					self.sendPTZ(self.ptzCommand, cmd)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -1879,7 +2212,7 @@ module.exports = {
 					self.bGainValue = action.options.val;
 					self.data.bGainValue = self.bGainValue;
 					cmd = s.bGain.cmd + self.bGainValue;
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
 				}
 			}
@@ -2028,7 +2361,7 @@ module.exports = {
 
 			actions.setMultiplePresetNames = {
 				name: 'Preset - Set Multiple Preset Names',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let opt = action.options;
 
@@ -2060,6 +2393,13 @@ module.exports = {
 				name: 'Preset - Recall',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Preset Number',
 						id: 'val',
@@ -2088,7 +2428,7 @@ module.exports = {
 					self.data.presetLastUsed = parseInt(action.options.val);
 
 					self.stopCustomTrace();
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.checkVariables();
 					self.checkFeedbacks();
 				}
@@ -2139,7 +2479,7 @@ module.exports = {
 					self.data.presetLastUsed = val;
 
 					self.stopCustomTrace();
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.checkVariables();
 					self.checkFeedbacks();
 				}
@@ -2202,7 +2542,7 @@ module.exports = {
 
 					self.stopCustomTrace();
 					console.log(`Set camera to preset ${preset1} now! ${cmd}`);
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.checkVariables();
 					self.checkFeedbacks();
 					if (action.options.loops < 1) action.options.loops = 1;
@@ -2236,7 +2576,7 @@ module.exports = {
 						// 	console.log("DONE!");
 						// 	return;
 						// }
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 						self.checkVariables();
 						self.checkFeedbacks();
 
@@ -2251,7 +2591,7 @@ module.exports = {
 							// }
 							self.stopCustomTrace();
 
-							self.sendPTZ(self.ptzCommand, cmd);
+							self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 							self.checkVariables();
 							self.checkFeedbacks();
 
@@ -2295,7 +2635,7 @@ module.exports = {
 					self.data.presetLastUsed = val;
 
 					self.stopCustomTrace();
-					self.sendPTZ(self.ptzCommand, cmd);
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.checkVariables();
 					self.checkFeedbacks();
 				}
@@ -2328,7 +2668,7 @@ module.exports = {
 		if (s.presets == true) {
 			actions.recallModePsetToggle = {
 				name: 'Preset - Toggle Recall Mode',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					self.presetRecallModeIndex = c.CHOICES_PRESETRECALLMODES.findIndex((PRESETRECALLMODE) => PRESETRECALLMODE.id == self.data.presetRecallMode);
 
@@ -2376,7 +2716,7 @@ module.exports = {
 		if (s.timePset == true) {
 			actions.timePsetUp = {
 				name: 'Preset - Drive Time Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let choices_pstime = c.CHOICES_PSTIME();
 
@@ -2396,7 +2736,7 @@ module.exports = {
 
 			actions.timePsetDown = {
 				name: 'Preset - Drive Time Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let choices_pstime = c.CHOICES_PSTIME();
 
@@ -2469,7 +2809,7 @@ module.exports = {
 		if (s.speedPset == true) {
 			actions.speedPsetUp = {
 				name: 'Preset - Drive Speed Up',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let choices_psspeed = c.CHOICES_PSSPEED();
 
@@ -2489,7 +2829,7 @@ module.exports = {
 
 			actions.speedPsetDown = {
 				name: 'Preset - Drive Speed Down',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let choices_psspeed = c.CHOICES_PSSPEED();
 
@@ -2799,7 +3139,7 @@ module.exports = {
 
 			actions.stopCustomTrace = {
 				name: 'Trace - Stop Custom Trace Loop',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					self.stopCustomTrace();
 					self.checkFeedbacks();
@@ -2918,7 +3258,7 @@ module.exports = {
 
 			actions.tracking_autotracking_on = {
 				name: 'Auto Tracking - Turn On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=1'
@@ -2928,7 +3268,7 @@ module.exports = {
 
 			actions.tracking_autotracking_off = {
 				name: 'Auto Tracking - Turn Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=0'
@@ -2938,7 +3278,7 @@ module.exports = {
 
 			actions.tracking_autotracking_toggle = {
 				name: 'Auto Tracking - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable='
@@ -2956,7 +3296,7 @@ module.exports = {
 
 			actions.tracking_autozoom_on = {
 				name: 'Auto Tracking - Auto Zoom - Turn On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'autoZoomEnable=1'
@@ -2966,7 +3306,7 @@ module.exports = {
 
 			actions.tracking_autozoom_off = {
 				name: 'Auto Tracking - Auto Zoom - Turn Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'autoZoomEnable=0'
@@ -2976,7 +3316,7 @@ module.exports = {
 
 			actions.tracking_autoZoom_toggle = {
 				name: 'Auto Tracking - Auto Zoom - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'autoZoomEnable='
@@ -3033,7 +3373,7 @@ module.exports = {
 
 			actions.tracking_setTrackingSensitivity_increase = {
 				name: 'Auto Tracking - Increase Tracking Sensitivity',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let sensitivity = parseInt(self.data.trackingConfig.sensitivity);
@@ -3055,7 +3395,7 @@ module.exports = {
 
 			actions.tracking_setTrackingSensitivity_decrease = {
 				name: 'Auto Tracking - Decrease Tracking Sensitivity',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let sensitivity = parseInt(self.data.trackingConfig.sensitivity);
@@ -3077,7 +3417,7 @@ module.exports = {
 
 			actions.tracking_fixTilt_on = {
 				name: 'Auto Tracking - Fix Tilt - Turn On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'tiltFixed=1'
@@ -3087,7 +3427,7 @@ module.exports = {
 
 			actions.tracking_fixTilt_off = {
 				name: 'Auto Tracking - Fix Tilt - Turn Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'tiltFixed=0'
@@ -3097,7 +3437,7 @@ module.exports = {
 
 			actions.tracking_fixTilt_toggle = {
 				name: 'Auto Tracking - Fix Tilt - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'tiltFixed='
@@ -3156,7 +3496,7 @@ module.exports = {
 
 			actions.tracking_recoveryControlTime_increase = {
 				name: 'Auto Tracking - Increase Recovery Control Time',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let recoveryControlTime = parseInt(self.data.trackingConfig.recoveryControlTime);
@@ -3178,7 +3518,7 @@ module.exports = {
 
 			actions.tracking_recoveryControlTime_decrease = {
 				name: 'Auto Tracking - Decrease Recovery Control Time',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let recoveryControlTime = parseInt(self.data.trackingConfig.recoveryControlTime);
@@ -3200,7 +3540,7 @@ module.exports = {
 
 			actions.tracking_recoveryControl_toggle = {
 				name: 'Auto Tracking - Recovery Control - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'recoveryControl='
@@ -3218,7 +3558,7 @@ module.exports = {
 
 			actions.tracking_restarttracking_on = {
 				name: 'Auto Tracking - Restart Tracking After Manual Operation - On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingRestartEnable=1'
@@ -3228,7 +3568,7 @@ module.exports = {
 
 			actions.tracking_restarttracking_off = {
 				name: 'Auto Tracking - Restart Tracking After Manual Operation - Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingRestartEnable=0'
@@ -3238,7 +3578,7 @@ module.exports = {
 
 			actions.tracking_restartTracking_toggle = {
 				name: 'Auto Tracking - Restart Tracking After Manual Operation - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingRestartEnable='
@@ -3295,7 +3635,7 @@ module.exports = {
 
 			actions.tracking_trackingStartTime_increase = {
 				name: 'Auto Tracking - Increase Tracking Start Time',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let trackingStartTime = parseInt(self.data.trackingConfig.trackingStartTime);
@@ -3317,7 +3657,7 @@ module.exports = {
 
 			actions.tracking_trackingStartTime_decrease = {
 				name: 'Auto Tracking - Decrease Tracking Start Time',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let trackingStartTime = parseInt(self.data.trackingConfig.trackingStartTime);
@@ -3339,7 +3679,7 @@ module.exports = {
 
 			actions.tracking_trackingRange_on = {
 				name: 'Auto Tracking - Tracking Range (Visibility Limit) - On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'visibilityLimitEnable=1'
@@ -3349,7 +3689,7 @@ module.exports = {
 
 			actions.tracking_trackingRange_off = {
 				name: 'Auto Tracking - Tracking Range (Visibility Limit) - Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'visibilityLimitEnable=0'
@@ -3359,7 +3699,7 @@ module.exports = {
 
 			actions.tracking_trackingRange_toggle = {
 				name: 'Auto Tracking - Tracking Range (Visibility Limit) - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'visibilityLimitEnable='
@@ -3763,7 +4103,7 @@ module.exports = {
 
 			actions.tracking_visibilityLimit_upper_view = {
 				name: 'Auto Tracking - View Tracking Range (Visibility Limit) Upper',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'control.cgi'
 
@@ -3776,14 +4116,14 @@ module.exports = {
 						let z = limit[2];
 					
 						let cmd = `pan=${x}&tilt=${y}&zoom=${z}`
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 				}
 			}
 
 			actions.tracking_visibilityLimit_left_view = {
 				name: 'Auto Tracking - View Tracking Range (Visibility Limit) Left',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'control.cgi'
 
@@ -3796,14 +4136,14 @@ module.exports = {
 						let z = limit[2];
 					
 						let cmd = `pan=${x}&tilt=${y}&zoom=${z}`
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 				}
 			}
 
 			actions.tracking_visibilityLimit_right_view = {
 				name: 'Auto Tracking - View Tracking Range (Visibility Limit) Right',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'control.cgi'
 
@@ -3816,14 +4156,14 @@ module.exports = {
 						let z = limit[2];
 					
 						let cmd = `pan=${x}&tilt=${y}&zoom=${z}`
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 				}
 			}
 
 			actions.tracking_visibilityLimit_lower_view = {
 				name: 'Auto Tracking - View Tracking Range (Visibility Limit) Lower',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'control.cgi'
 
@@ -3836,14 +4176,14 @@ module.exports = {
 						let z = limit[2];
 					
 						let cmd = `pan=${x}&tilt=${y}&zoom=${z}`
-						self.sendPTZ(self.ptzCommand, cmd);
+						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 				}
 			}
 
 			actions.tracking_setinitialtracking_current = {
 				name: 'Auto Tracking - Set Initial Tracking Position to Current Camera Position',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi';
 					if (self.data.trackingInformation && self.data.trackingInformation.camera_ptz_info !== undefined) {
@@ -3916,7 +4256,7 @@ module.exports = {
 
 			actions.tracking_trackingTargetAutoSelect_on = {
 				name: 'Auto Tracking - Tracking Target Auto Select - On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'targetSelection=1'
@@ -3926,7 +4266,7 @@ module.exports = {
 
 			actions.tracking_trackingTargetAutoSelect_off = {
 				name: 'Auto Tracking - Tracking Target Auto Select - Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'targetSelection=0'
@@ -3936,7 +4276,7 @@ module.exports = {
 
 			actions.tracking_trackingTargetAutoSelect_toggle = {
 				name: 'Auto Tracking - Tracking Target Auto Select - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'targetSelection='
@@ -3954,7 +4294,7 @@ module.exports = {
 
 			actions.tracking_silhouette_on = {
 				name: 'Auto Tracking - Silhouette - On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'zoomControlEnable=1'
@@ -3964,7 +4304,7 @@ module.exports = {
 
 			actions.tracking_silhouette_off = {
 				name: 'Auto Tracking - Silhouette - Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'zoomControlEnable=0'
@@ -3974,7 +4314,7 @@ module.exports = {
 
 			actions.tracking_silhouette_toggle = {
 				name: 'Auto Tracking - Silhouette - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'zoomControlEnable='
@@ -4083,7 +4423,7 @@ module.exports = {
 
 			actions.tracking_silhouetteSize_increase = {
 				name: 'Auto Tracking - Increase Display Size (Silhouette Size)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let targetSizeLevel = parseInt(self.data.trackingConfig.targetSizeLevel);
@@ -4105,7 +4445,7 @@ module.exports = {
 
 			actions.tracking_silhouetteSize_decrease = {
 				name: 'Auto Tracking - Decrease Display Size (Silhouette Size)',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let targetSizeLevel = parseInt(self.data.trackingConfig.targetSizeLevel);
@@ -4127,7 +4467,7 @@ module.exports = {
 
 			actions.tracking_panTiltHalting_on = {
 				name: 'Auto Tracking - Pan/Tilt Halting Area - On',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingDisableAreaEnable=1'
@@ -4137,7 +4477,7 @@ module.exports = {
 
 			actions.tracking_panTiltHalting_off = {
 				name: 'Auto Tracking - Pan/Tilt Halting Area - Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingDisableAreaEnable=0'
@@ -4147,7 +4487,7 @@ module.exports = {
 
 			actions.tracking_panTiltHalting_toggle = {
 				name: 'Auto Tracking - Pan/Tilt Halting Area - Toggle On/Off',
-				options: [],
+				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingDisableAreaEnable='

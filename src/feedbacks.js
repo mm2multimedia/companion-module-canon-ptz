@@ -911,5 +911,16 @@ module.exports = {
 		}
 
 		self.setFeedbackDefinitions(feedbacks);
+	},
+
+	checkFeedbacks: function () {
+		let self = this;
+		try {
+			if (typeof self.checkFeedbacksValues === 'function') {
+				self.checkFeedbacksValues();
+			}
+		} catch (error) {
+			self.log('warn', 'Error checking feedbacks: ' + String(error));
+		}
 	}
 }

@@ -1,7 +1,29 @@
 let { MODELS, SERIES_SPECS } = require('./models.js')
 const c = require('./choices.js')
 
+/**
+ * Safely get a value from an array at a given index
+ * @param {array} arr - The array
+ * @param {number} index - The index
+ * @param {string} key - The property key to access (e.g., 'label')
+ * @param {*} defaultValue - Default value if not found
+ */
+function safeArrayAccess(arr, index, key, defaultValue) {
+	if (!arr || typeof arr !== 'object' || !Array.isArray(arr)) {
+		return defaultValue
+	}
+	if (index === undefined || index === null || index < 0 || index >= arr.length) {
+		return defaultValue
+	}
+	const item = arr[index]
+	if (!item || typeof item !== 'object') {
+		return defaultValue
+	}
+	return item[key] !== undefined ? item[key] : defaultValue
+}
+
 module.exports = {
+	safeArrayAccess: safeArrayAccess,
 	initVariables: function () {
 		let self = this;
 
@@ -213,6 +235,7 @@ module.exports = {
 
 		try {
 			let SERIES = {};
+			let variableValues = {};
 
 			// Set the model and series selected, if in auto, detect what model is connected
 			if (self.config.model === 'Auto') {
@@ -237,8 +260,6 @@ module.exports = {
 				SERIES = SERIES_SPECS.find((SERIES_SPECS) => SERIES_SPECS.id == self.data.series)
 			}
 
-			variableValues = {};
-
 			variableValues.series = self.data.series;
 			variableValues.model = self.data.model;
 
@@ -255,12 +276,12 @@ module.exports = {
 			//Zoom/Focus
 			variableValues.zoomSpeed = self.data.zoomSpeed;
 			variableValues.zoomValue = self.data.zoomValue;
-			variableValues.focusSpeed = c.CHOICES_FOCUS_SPEED[self.fSpeedIndex].label;
+			variableValues.focusSpeed = safeArrayAccess(c.CHOICES_FOCUS_SPEED, self.fSpeedIndex, 'label', self.data.focusSpeed);
 			variableValues.focusValue = self.data.focusValue;
 			variableValues.autoFocusMode = self.data.autoFocusMode;
 
 			//Pan/Tilt
-			variableValues.panTiltSpeedValue = c.CHOICES_PT_SPEED[self.ptSpeedIndex].label;
+			variableValues.panTiltSpeedValue = safeArrayAccess(c.CHOICES_PT_SPEED, self.ptSpeedIndex, 'label', self.data.panTiltSpeedValue);
 
 			//Exposure
 			if (SERIES.variables.exposureShootingMode == true) {

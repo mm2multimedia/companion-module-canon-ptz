@@ -1,14 +1,17 @@
 {
-	"name": "canon-ptz",
-	"version": "2.4.0",
+	"name": "companion-module-canon-ptz-multicam",
+	"shortname": "canon-ptz-multicam",
+	"description": "Canon PTZ module with dynamic multi-camera support",
+	"version": "1.1.0",
 	"main": "src/index.js",
 	"scripts": {
+		"build": "rm -rf dist && mkdir -p dist && cp -r src/* dist/ && cp companion/manifest.json dist/manifest.json && sed -i '' 's|../src/||' dist/manifest.json",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/bitfocus/companion-module-canon-ptz.git"
+		"url": "git+https://github.com/mm2multimedia/companion-module-canon-ptz.git"
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.11.0",
