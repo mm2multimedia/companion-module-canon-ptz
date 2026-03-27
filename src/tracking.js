@@ -33,23 +33,36 @@ module.exports = {
 		}
 	},
 
-	async sendTrackingRequest(cmd) {
+	async sendTrackingRequest(cmd, cameraIndex) {
 		let self = this
 
-		// Get the first configured camera for tracking
+		// Get the camera to use for tracking
 		if (!self.configuredCameras || self.configuredCameras.length === 0) {
 			return { status: 'failed' }
 		}
 
-		const firstCamera = self.configuredCameras[0]
-		if (!firstCamera || !firstCamera.ip) {
+		let selectedCamera = self.configuredCameras[0] // default to first camera
+
+		// If cameraIndex is specified, resolve it and find the matching camera
+		if (cameraIndex !== undefined && cameraIndex !== null) {
+			const resolvedIndex = await self.parseVariablesInString(cameraIndex.toString())
+			const parsedIndex = parseInt(resolvedIndex)
+			if (!isNaN(parsedIndex)) {
+				const foundCamera = self.getCameraByIndex(parsedIndex)
+				if (foundCamera) {
+					selectedCamera = foundCamera
+				}
+			}
+		}
+
+		if (!selectedCamera || !selectedCamera.ip) {
 			return { status: 'failed' }
 		}
 
 		const trackingAddonUrl =
 			self.config.trackingAddonUrl || '/cgi-addon/Auto_Tracking_RA-AT001/app_ctrl/'
 
-		const trackingBaseUrl = `http://${firstCamera.ip}:${self.config.httpPort}${trackingAddonUrl}`
+		const trackingBaseUrl = `http://${selectedCamera.ip}:${self.config.httpPort}${trackingAddonUrl}`
 		const requestUrl = `${trackingBaseUrl}${cmd}`
 
 		try {
@@ -111,12 +124,12 @@ module.exports = {
 		}
 	},
 
-	async sendTrackingCommand(base, cmd) {
+	async sendTrackingCommand(base, cmd, cameraIndex) {
 		let self = this
 
 		try {
 			const command = `${base}?${cmd}`
-			const result = await self.sendTrackingRequest(command)
+			const result = await self.sendTrackingRequest(command, cameraIndex)
 
 			if (result && result.response && result.response.data) {
 				self.log('debug', 'Tracking command sent successfully')

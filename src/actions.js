@@ -348,6 +348,13 @@ module.exports = {
 				name: 'Digital Zoom On/Off',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'On/Off',
 						id: 'bol',
@@ -378,6 +385,13 @@ module.exports = {
 				name: 'Image Stabilization On/Off',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'On/Off',
 						id: 'bol',
@@ -407,6 +421,13 @@ module.exports = {
 			actions.customCommand = {
 				name: 'Send Custom Command',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'textinput',
 						label: 'Custom Command',
@@ -723,6 +744,13 @@ module.exports = {
 				name: 'Pan/Tilt - Set Speed',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Pan/Tilt Speed Setting',
 						id: 'speed',
@@ -758,11 +786,11 @@ module.exports = {
 				name: 'Lens - Zoom In',
 				options: [
 					{
-						type: 'dropdown',
-						label: 'Camera',
+						type: 'textinput',
+						label: 'Camera Index',
 						id: 'camera_index',
-						default: (self.configuredCameras && self.configuredCameras.length > 0) ? String(self.configuredCameras[0].index) : '1',
-						choices: self.getCameraChoicesArray(),
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
 					},
 				],
 				callback: async (action) => {
@@ -775,11 +803,11 @@ module.exports = {
 				name: 'Lens - Zoom Out',
 				options: [
 					{
-						type: 'dropdown',
-						label: 'Camera',
+						type: 'textinput',
+						label: 'Camera Index',
 						id: 'camera_index',
-						default: (self.configuredCameras && self.configuredCameras.length > 0) ? String(self.configuredCameras[0].index) : '1',
-						choices: self.getCameraChoicesArray(),
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
 					},
 				],
 				callback: async (action) => {
@@ -812,6 +840,13 @@ module.exports = {
 				options: [
 					{
 						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
+						type: 'textinput',
 						label: 'Zoom Value',
 						id: 'value',
 						default: '',
@@ -830,6 +865,13 @@ module.exports = {
 			actions.zSpeedS = {
 				name: 'Lens - Set Zoom Speed',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Zoom Speed Setting',
@@ -920,6 +962,13 @@ module.exports = {
 			actions.fSpeedS = {
 				name: 'Lens - Set Focus Speed',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Focus Speed Setting',
@@ -1181,6 +1230,13 @@ module.exports = {
 				name: 'AE Gain Limit Max',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'number',
 						label: 'Value',
 						id: 'val',
@@ -1207,6 +1263,13 @@ module.exports = {
 				name: 'AE Brightness',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'AE Brightness',
 						id: 'val',
@@ -1227,6 +1290,13 @@ module.exports = {
 			actions.aePhotometry = {
 				name: 'AE Photometry',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'AE Photometry',
@@ -1249,6 +1319,13 @@ module.exports = {
 				name: 'AE Flicker Reduct',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'AE Flicker Reduct',
 						id: 'val',
@@ -1269,6 +1346,13 @@ module.exports = {
 			actions.aeResp = {
 				name: 'AE Resp',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'number',
 						label: 'Value',
@@ -1851,6 +1935,13 @@ module.exports = {
 				name: 'Exposure - Set ND Filter',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'ND Filter Setting',
 						id: 'val',
@@ -2080,6 +2171,13 @@ module.exports = {
 				name: 'White Balance - Set Kelvin Value',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Kelvin Setting',
 						id: 'val',
@@ -2139,6 +2237,13 @@ module.exports = {
 			actions.rGainSet = {
 				name: 'White Balance - Set Red Gain',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Red Gain Setting',
@@ -2200,6 +2305,13 @@ module.exports = {
 				name: 'White Balance - Set Blue Gain',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Blue Gain Setting',
 						id: 'val',
@@ -2226,6 +2338,13 @@ module.exports = {
 			actions.savePset = {
 				name: 'Preset - Save',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'checkbox',
 						label: 'Use variables as Preset Number',
@@ -2439,6 +2558,13 @@ module.exports = {
 				options: [
 					{
 						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
+						type: 'textinput',
 						label: 'Preset Number',
 						id: 'val',
 						default: 1,
@@ -2609,6 +2735,13 @@ module.exports = {
 				options: [
 					{
 						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
+						type: 'textinput',
 						label: 'Preset Number',
 						id: 'val',
 						default: 1,
@@ -2644,6 +2777,13 @@ module.exports = {
 			actions.deletePset = {
 				name: 'Preset - Delete (by number)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'textinput',
 						label: 'Preset Number',
@@ -2694,6 +2834,13 @@ module.exports = {
 			actions.recallModePset = {
 				name: 'Preset - Set Recall Mode',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Preset Mode',
@@ -2758,6 +2905,13 @@ module.exports = {
 				name: 'Preset - Set Drive Time',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Time Seconds',
 						id: 'time',
@@ -2778,6 +2932,13 @@ module.exports = {
 			actions.timePsetVariable = {
 				name: 'Preset - Set Drive Time (with variable)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'textinput',
 						label: 'Time Seconds (between 2-99)',
@@ -2851,6 +3012,13 @@ module.exports = {
 				name: 'Preset - Set Drive Speed',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Speed Setting',
 						id: 'speed',
@@ -2872,6 +3040,13 @@ module.exports = {
 			actions.speedPsetVariable = {
 				name: 'Preset - Set Drive Speed (with variable)',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'textinput',
 						label: 'Speed Setting (between 1-100)',
@@ -3151,6 +3326,13 @@ module.exports = {
 				name: 'Trace - Prepare',
 				options: [
 					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
 						type: 'dropdown',
 						label: 'Trace Number',
 						id: 'trace',
@@ -3178,13 +3360,20 @@ module.exports = {
 					self.checkVariables();
 					self.checkFeedbacks();
 
-					self.sendPTZ(self.traceCommand, cmd);
+					self.sendPTZ(self.traceCommand, cmd, action.options.camera_index);
 				}
 			}
 
 			actions.traceStart = {
 				name: 'Trace - Start',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Trace Number',
@@ -3213,13 +3402,20 @@ module.exports = {
 					self.checkVariables();
 					self.checkFeedbacks();
 
-					self.sendPTZ(self.traceCommand, cmd);
+					self.sendPTZ(self.traceCommand, cmd, action.options.camera_index);
 				}
 			}
 
 			actions.traceStop = {
 				name: 'Trace - Stop',
 				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
 					{
 						type: 'dropdown',
 						label: 'Trace Number',
@@ -3248,7 +3444,7 @@ module.exports = {
 					self.checkVariables();
 					self.checkFeedbacks();
 
-					self.sendPTZ(self.traceCommand, cmd);
+					self.sendPTZ(self.traceCommand, cmd, action.options.camera_index);
 				}
 			}
 		}
@@ -3262,7 +3458,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3272,7 +3468,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3289,7 +3485,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3300,7 +3496,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'autoZoomEnable=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3310,7 +3506,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'autoZoomEnable=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3327,7 +3523,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3367,7 +3563,7 @@ module.exports = {
 					}
 
 					let cmd = `sensitivity=${sensitivity}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3389,7 +3585,7 @@ module.exports = {
 					}
 
 					let cmd = `sensitivity=${sensitivity}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3411,7 +3607,7 @@ module.exports = {
 					}
 
 					let cmd = `sensitivity=${sensitivity}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3421,7 +3617,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'tiltFixed=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3431,7 +3627,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'tiltFixed=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3448,7 +3644,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3478,7 +3674,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = `recoveryControl=${action.options.recoveryControl}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 
 					if (action.options.recoveryControl == '1') {
 						let recoveryControlTime = parseInt(await self.parseVariablesInString(action.options.recoveryControlTime));
@@ -3489,7 +3685,7 @@ module.exports = {
 						}
 
 						cmd = `recoveryControlTime=${recoveryControlTime}`;
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3512,7 +3708,7 @@ module.exports = {
 					}
 
 					let cmd = `recoveryControlTime=${recoveryControlTime}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3534,7 +3730,7 @@ module.exports = {
 					}
 
 					let cmd = `recoveryControlTime=${recoveryControlTime}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3551,7 +3747,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3562,7 +3758,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingRestartEnable=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3572,7 +3768,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingRestartEnable=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3589,7 +3785,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3629,7 +3825,7 @@ module.exports = {
 					}
 
 					let cmd = `trackingStartTime=${trackingStartTime}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3651,7 +3847,7 @@ module.exports = {
 					}
 
 					let cmd = `trackingStartTime=${trackingStartTime}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3673,7 +3869,7 @@ module.exports = {
 					}
 
 					let cmd = `trackingStartTime=${trackingStartTime}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3683,7 +3879,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'visibilityLimitEnable=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3693,7 +3889,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'visibilityLimitEnable=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3710,7 +3906,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -3861,7 +4057,7 @@ module.exports = {
 					}
 					
 					let cmd = `visibilityLimitUpper=${upper_x}:${upper_y}:${upper_z}&visibilityLimitLeft=${left_x}:${left_y}:${left_z}&visibilityLimitRight=${right_x}:${right_y}:${right_z}&visibilityLimitLower=${lower_x}:${lower_y}:${lower_z}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3920,7 +4116,7 @@ module.exports = {
 					}
 					
 					let cmd = `visibilityLimitUpper=${x}:${y}:${z}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -3979,7 +4175,7 @@ module.exports = {
 					}
 					
 					let cmd = `visibilityLimitLeft=${x}:${y}:${z}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4038,7 +4234,7 @@ module.exports = {
 					}
 					
 					let cmd = `visibilityLimitRight=${x}:${y}:${z}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4097,7 +4293,7 @@ module.exports = {
 					}
 					
 					let cmd = `visibilityLimitLower=${x}:${y}:${z}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4190,7 +4386,7 @@ module.exports = {
 						let currentPosition = self.data.trackingInformation.camera_ptz_info;
 						let homePosition = currentPosition.pan_pos.slice(0, -1) + ':' + currentPosition.tilt_pos.slice(0, -1) + ':' + currentPosition.zoom_pos.slice(0, -1);
 						let cmd = `homePosition=${homePosition}`
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -4250,7 +4446,7 @@ module.exports = {
 
 					let homePosition = currentPosition.x + ':' + currentPosition.y + ':' + currentPosition.z;
 					let cmd = `homePosition=${homePosition}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4260,7 +4456,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'targetSelection=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4270,7 +4466,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'targetSelection=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4287,7 +4483,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -4298,7 +4494,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'zoomControlEnable=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4308,7 +4504,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'zoomControlEnable=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4325,7 +4521,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
@@ -4377,7 +4573,7 @@ module.exports = {
 
 					let targetPosition = x + ':' + y;
 					let cmd = `targetPosition=${targetPosition}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4417,7 +4613,7 @@ module.exports = {
 					}
 
 					let cmd = `targetSizeLevel=${value}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4439,7 +4635,7 @@ module.exports = {
 					}
 
 					let cmd = `targetSizeLevel=${targetSizeLevel}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4461,7 +4657,7 @@ module.exports = {
 					}
 
 					let cmd = `targetSizeLevel=${targetSizeLevel}`
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4471,7 +4667,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingDisableAreaEnable=1'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4481,7 +4677,7 @@ module.exports = {
 				callback: async (action) => {
 					let base = 'update_config.cgi'
 					let cmd = 'trackingDisableAreaEnable=0'
-					self.sendTrackingCommand(base, cmd);
+					self.sendTrackingCommand(base, cmd, action.options.camera_index);
 				}
 			}
 
@@ -4498,7 +4694,7 @@ module.exports = {
 						else {
 							cmd += '1'
 						}
-						self.sendTrackingCommand(base, cmd);
+						self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					}
 				}
 			}
