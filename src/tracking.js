@@ -51,6 +51,9 @@ module.exports = {
 				const foundCamera = self.getCameraByIndex(parsedIndex)
 				if (foundCamera) {
 					selectedCamera = foundCamera
+					// Track the currently selected camera for dynamic variable resolution
+					self.currentSelectedCamera = foundCamera.id
+					self.currentSelectedCameraIndex = parsedIndex
 				}
 			}
 		}

@@ -79,7 +79,14 @@ module.exports = {
 	},
 
 	storeData(cameraId, str) {
+		let self = this
 		this.dataByCamera ??= {}
+
+		// Log all data keys for debugging (first few lines only)
+		if (str[0] && this.dataByCamera[cameraId] && this.dataByCamera[cameraId].info.length < 20) {
+			self.log('debug', `Camera ${cameraId} data: ${str[0]}=${str[1]}`)
+		}
+
 		if (!this.dataByCamera[cameraId]) {
 			this.dataByCamera[cameraId] = {
 				info: [],
@@ -128,13 +135,13 @@ module.exports = {
 				presetRecallMode: 'normal',
 				presetTimeValue: 2000,
 				presetSpeedValue: 1,
+				presetNames: {}, // Store preset names by preset number
 				trackingConfig: {},
 				trackingInformation: {},
 				_modelProcessed: false, // Flag to prevent repeated model reload
 			}
 		}
 
-		let self = this
 		this.dataByCamera[cameraId].info.push(str)
 
 		try {
@@ -310,7 +317,25 @@ module.exports = {
 					self.checkFeedbacks()
 					break
 
+				// Preset names (p.1.name.utf8, p.2.name.utf8, etc.)
 				default:
+					// Handle preset names with pattern p.N.name.utf8
+					if (str[0] && str[0].match(/^p\.\d+\.name\.utf8$/)) {
+						const presetMatch = str[0].match(/^p\.(\d+)\.name\.utf8$/)
+						if (presetMatch) {
+							const presetNumber = parseInt(presetMatch[1])
+							if (!isNaN(presetNumber)) {
+								// Ensure presetNames object exists
+								if (!this.dataByCamera[cameraId].presetNames) {
+									this.dataByCamera[cameraId].presetNames = {}
+								}
+								this.dataByCamera[cameraId].presetNames[presetNumber] = str[1]
+								self.log('info', `✓ Stored preset ${presetNumber} name "${str[1]}" from camera ${cameraId}`)
+								// Update variables when preset names change
+								self.checkVariables()
+							}
+						}
+					}
 					break
 			}
 		} catch (error) {

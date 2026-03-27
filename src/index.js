@@ -118,6 +118,11 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 		// Per-camera state storage
 		this.dataByCamera = {}
 
+		// Track currently selected camera for dynamic variable resolution
+		this.currentSelectedCamera = null
+		this.currentSelectedCameraIndex = null
+		this.lastCheckedSelectedCameraIndex = null  // Track for detecting changes
+
 		// Active actions tracking
 		this.activeActions = new Map()
 		this.customTraceLoop = false
@@ -269,6 +274,7 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 			for (const camDef of this.configuredCameras) {
 				try {
 					const cam = new CanonCamera({
+						id: camDef.id,
 						host: camDef.ip,
 						port: this.config.httpPort || 80,
 						username: this.config.username || '',

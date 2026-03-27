@@ -165,6 +165,10 @@ module.exports = {
 			for (let i = 1; i <= 100; i++) {
 				variables.push({ variableId: 'presetname_' + i, name: 'Preset ' + i + ' Name' });
 			}
+			// Add "current camera" preset name variables - these update based on selected camera
+			for (let i = 1; i <= 100; i++) {
+				variables.push({ variableId: 'currentCameraPresetname_' + i, name: 'Current Camera - Preset ' + i + ' Name' });
+			}
 		}
 		if (SERIES.variables.presetLastUsed == true) {
 			variables.push({ variableId: 'presetLastUsed', name: 'Preset Last Used' })
@@ -513,8 +517,35 @@ module.exports = {
 
 			//Recall Preset
 			if (SERIES.variables.presetNames == true) {
+				// Get the current selected camera
+				let selectedCameraId = null;
+
+				// Prefer the currently selected camera (updated by actions)
+				if (self.currentSelectedCamera && self.dataByCamera[self.currentSelectedCamera]) {
+					selectedCameraId = self.currentSelectedCamera;
+				} else if (self.dataByCamera && Object.keys(self.dataByCamera).length > 0) {
+					// Fall back to the first camera's preset names
+					selectedCameraId = Object.keys(self.dataByCamera)[0];
+				}
+
+				self.log('info', `Resolving preset names for camera: ${selectedCameraId}`);
+
 				for (let i = 1; i <= 100; i++) {
-					variableValues[`presetname_${i}`] = self.data[`presetname${i}`];
+					// Get preset name from selected camera's polling data
+					if (selectedCameraId && self.dataByCamera[selectedCameraId] && self.dataByCamera[selectedCameraId].presetNames && self.dataByCamera[selectedCameraId].presetNames[i]) {
+						const presetName = self.dataByCamera[selectedCameraId].presetNames[i];
+						variableValues[`presetname_${i}`] = presetName;
+						// Also set the "current camera" variable
+						variableValues[`currentCameraPresetname_${i}`] = presetName;
+						if (i <= 5) {
+							self.log('info', `✓ Set presetname_${i} = "${presetName}" (currentCameraPresetname_${i})`);
+						}
+					} else {
+						// If no camera data, default to preset number
+						variableValues[`presetname_${i}`] = String(i);
+						// Also set the "current camera" variable
+						variableValues[`currentCameraPresetname_${i}`] = String(i);
+					}
 				}
 			}
 

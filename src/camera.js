@@ -4,6 +4,7 @@ class CanonCamera {
 	constructor(config) {
 		this.config = config
 		this.host = config.host
+		this.id = config.id // Store camera ID for identification
 		this.api = new API(config)
 		this.isOnline = false
 	}

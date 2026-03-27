@@ -59,6 +59,9 @@ module.exports = {
 							return;
 						}
 						cameraIP = camera.host;
+						// Track the currently selected camera for dynamic variable resolution
+						self.currentSelectedCamera = camera.id;
+						self.currentSelectedCameraIndex = parsedIndex;
 					} else {
 						self.log('error', `Invalid camera index: "${resolvedIndex}" (must be a number). If using a variable, make sure it's defined and resolves to a number.`);
 						return;
@@ -198,6 +201,26 @@ module.exports = {
 				self.configUpdated(self.config);
 			}
 		};
+
+		// Always add this action - select camera for dynamic preset name display
+		actions.selectCamera = {
+			name: 'System - Select Camera (for dynamic preset display)',
+			options: self.getCameraSelectionOptions(),
+			callback: async (action) => {
+				const cameraIndex = action.options.camera_index;
+				const resolvedCameraIndex = await self.parseVariablesInString(cameraIndex.toString());
+				const cameraIndexNum = parseInt(resolvedCameraIndex);
+				const camera = self.getCameraByIndex(cameraIndexNum);
+
+				if (camera) {
+					self.currentSelectedCamera = camera.id;
+					self.currentSelectedCameraIndex = cameraIndexNum;
+					self.log('info', `✓ Selected camera index ${cameraIndexNum} for preset display`);
+					self.checkVariables();
+					self.checkFeedbacks();
+				}
+			}
+		}
 
 		if (s.powerState == true) {
 			actions.powerOff = {
@@ -2416,10 +2439,14 @@ module.exports = {
 				callback: async (action) => {
 					let presetName = await self.parseVariablesInString(action.options.name);
 					let presetNumber = action.options.val;
+					let cameraIndex = action.options.camera_index;
 					
 					if (action.options.use_variables) {
 						presetNumber = await self.parseVariablesInString(action.options.val_v);
 					}
+
+					// Ensure presetNumber is an integer for consistent storage/lookup
+					presetNumber = parseInt(presetNumber);
 
 					if (isNaN(presetNumber) || presetNumber < 1 || presetNumber > 100) {
 						self.log('info', `Preset must be a number between 1 and 100. Value entered: ${presetNumber}`);
@@ -2471,10 +2498,13 @@ module.exports = {
 
 					self.stopCustomTrace();
 					
+					// Resolve camera index and store preset name in per-camera data
+					// Preset names are retrieved from camera polling data
+
+					await self.sendPTZ(self.savePresetCommand, cmd, cameraIndex);
+
 					self.checkVariables();
 					self.checkFeedbacks();
-
-					self.sendPTZ(self.savePresetCommand, cmd);
 				}
 			}
 
@@ -2484,10 +2514,19 @@ module.exports = {
 				callback: async (action) => {
 					let opt = action.options;
 
+					let cameraIndex = action.options.camera_index;
+
+					// Resolve camera index once for all presets
+					const resolvedCameraIndex = await self.parseVariablesInString(cameraIndex.toString());
+					const cameraIndexNum = parseInt(resolvedCameraIndex);
+					const camera = self.getCameraByIndex(cameraIndexNum);
+
 					for (let i = 1; i <= 30; i++) {
 						let presetName = await self.parseVariablesInString(opt[`preset${i}_name`]);
 						cmd = `p=${i}&name=${presetName}`;
-						self.sendPTZ(self.savePresetCommand, cmd);
+
+						// Preset names are retrieved from camera polling data
+						await self.sendPTZ(self.savePresetCommand, cmd, cameraIndex);
 					}
 
 					self.checkVariables();
