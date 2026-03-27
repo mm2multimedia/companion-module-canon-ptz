@@ -41,21 +41,36 @@ module.exports = {
 			return { status: 'failed' }
 		}
 
-		let selectedCamera = self.configuredCameras[0] // default to first camera
+		let selectedCamera = null
+		let cameraIndexToUse = null
 
-		// If cameraIndex is specified, resolve it and find the matching camera
+		// Priority 1: Use provided camera index
 		if (cameraIndex !== undefined && cameraIndex !== null) {
 			const resolvedIndex = await self.parseVariablesInString(cameraIndex.toString())
 			const parsedIndex = parseInt(resolvedIndex)
 			if (!isNaN(parsedIndex)) {
-				const foundCamera = self.getCameraByIndex(parsedIndex)
-				if (foundCamera) {
-					selectedCamera = foundCamera
-					// Track the currently selected camera for dynamic variable resolution
-					self.currentSelectedCamera = foundCamera.id
-					self.currentSelectedCameraIndex = parsedIndex
-				}
+				cameraIndexToUse = parsedIndex
 			}
+		}
+		// Priority 2: Use currently selected camera
+		else if (self.currentSelectedCameraIndex !== null && self.currentSelectedCameraIndex !== undefined) {
+			cameraIndexToUse = self.currentSelectedCameraIndex
+		}
+
+		// Find the camera
+		if (cameraIndexToUse !== null) {
+			const foundCamera = self.getCameraByIndex(cameraIndexToUse)
+			if (foundCamera) {
+				selectedCamera = foundCamera
+				// Track the currently selected camera for dynamic variable resolution
+				self.currentSelectedCamera = foundCamera.id
+				self.currentSelectedCameraIndex = cameraIndexToUse
+			}
+		}
+
+		// Fallback to first camera if not found
+		if (!selectedCamera) {
+			selectedCamera = self.configuredCameras[0]
 		}
 
 		if (!selectedCamera || !selectedCamera.ip) {

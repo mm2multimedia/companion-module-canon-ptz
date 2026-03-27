@@ -35,6 +35,25 @@ module.exports = {
 		];
 	},
 
+	/**
+	 * Helper to update selected camera from camera_index parameter
+	 * This is called by all actions with camera_index to enable dynamic preset display
+	 */
+	async updateSelectedCamera(cameraIndex) {
+		let self = this;
+		if (cameraIndex !== undefined && cameraIndex !== null && cameraIndex.toString().trim() !== '') {
+			const resolvedValue = await self.parseVariablesInString(cameraIndex.toString());
+			const parsedIndex = parseInt(resolvedValue);
+			if (!isNaN(parsedIndex)) {
+				const camera = self.getCameraByIndex(parsedIndex);
+				if (camera) {
+					self.currentSelectedCamera = camera.id;
+					self.currentSelectedCameraIndex = parsedIndex;
+				}
+			}
+		}
+	},
+
 	async sendPTZ(command, str, cameraIndex) {
 		let self = this;
 
@@ -42,12 +61,17 @@ module.exports = {
 			if (str !== undefined) {
 				// Get camera by index
 				let cameraIP = self.config.host; // Fallback for old code
-
 				let resolvedIndex = null;
+
+				// Priority 1: Use provided camera index
 				if (cameraIndex !== undefined && cameraIndex !== null && cameraIndex.toString().trim() !== '') {
 					// Resolve Companion variables like $(custom:selectedCameraIndex)
 					const resolvedValue = await self.parseVariablesInString(cameraIndex.toString());
 					resolvedIndex = resolvedValue.trim();
+				}
+				// Priority 2: Use currently selected camera (from "System - Select Camera" action)
+				else if (self.currentSelectedCameraIndex !== null && self.currentSelectedCameraIndex !== undefined) {
+					resolvedIndex = String(self.currentSelectedCameraIndex);
 				}
 
 				if (resolvedIndex !== null) {
@@ -67,7 +91,7 @@ module.exports = {
 						return;
 					}
 				} else if (self.configuredCameras && self.configuredCameras.length > 0) {
-					// Use first configured camera as default
+					// Priority 3: Use first configured camera as fallback
 					cameraIP = self.configuredCameras[0].ip;
 				}
 
@@ -207,18 +231,9 @@ module.exports = {
 			name: 'System - Select Camera (for dynamic preset display)',
 			options: self.getCameraSelectionOptions(),
 			callback: async (action) => {
-				const cameraIndex = action.options.camera_index;
-				const resolvedCameraIndex = await self.parseVariablesInString(cameraIndex.toString());
-				const cameraIndexNum = parseInt(resolvedCameraIndex);
-				const camera = self.getCameraByIndex(cameraIndexNum);
-
-				if (camera) {
-					self.currentSelectedCamera = camera.id;
-					self.currentSelectedCameraIndex = cameraIndexNum;
-					self.log('info', `✓ Selected camera index ${cameraIndexNum} for preset display`);
-					self.checkVariables();
-					self.checkFeedbacks();
-				}
+				await self.updateSelectedCamera(action.options.camera_index);
+				self.checkVariables();
+				self.checkFeedbacks();
 			}
 		}
 
