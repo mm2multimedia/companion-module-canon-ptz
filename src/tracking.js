@@ -54,13 +54,8 @@ module.exports = {
 						self.getCameraTrackingConfig.bind(self)(self.currentSelectedCameraIndex)
 						self.getCameraTrackingInformation.bind(self)(self.currentSelectedCameraIndex)
 						pollAttempts = 0 // Reset counter when polling succeeds
-					} else {
-						// Only log once per 10 attempts to avoid log spam
-						if (pollAttempts % 10 === 0) {
-							self.log('info', 'Auto Tracking polling waiting for camera selection...')
-						}
-						pollAttempts++
 					}
+					// Don't log waiting for camera selection - it's expected when cameras are offline
 				} catch (e) {
 					self.log('warn', `Error in tracking poll: ${e.message}`)
 				}
