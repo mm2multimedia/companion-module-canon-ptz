@@ -713,7 +713,9 @@ module.exports = {
 		feedbacks: [
 			{
 				feedbackId: 'tracking_autotracking_enabled',
-				options: {},
+				options: {
+					state: '1'
+				},
 				style: {
 					color: combineRgb(255, 255, 255),
 					bgcolor: combineRgb(0, 112, 192),

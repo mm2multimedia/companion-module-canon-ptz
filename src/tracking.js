@@ -143,31 +143,38 @@ module.exports = {
 
 		try {
 			const cmd = 'get_config.cgi'
-			self.log('debug', `getCameraTrackingConfig called with cameraIndex: ${cameraIndex}`)
 			const result = await self.sendTrackingRequest(cmd, cameraIndex)
 
 			if (result && result.response && result.response.data) {
 				try {
+					// Store the tracking config
+					const oldValue = self.data.trackingConfig?.trackingEnable
 					self.data.trackingConfig = result.response.data
-					const trackingEnable = result.response.data.trackingEnable
-					self.log('info', `Tracking config updated: trackingEnable="${trackingEnable}" (type: ${typeof trackingEnable}, raw: ${JSON.stringify(trackingEnable)})`)
-					self.log('debug', `Full tracking config: ${JSON.stringify(result.response.data)}`)
-					// Update feedbacks and variables when tracking config changes
-					if (typeof self.checkFeedbacksValues === 'function') {
-						self.checkFeedbacksValues()
+					const newValue = result.response.data.trackingEnable
+
+					// Only log if value changed (not every poll)
+					if (oldValue !== newValue) {
+						self.log('info', `Tracking config changed: trackingEnable="${oldValue}" → "${newValue}"`)
 					}
+
+					// Always update variables and feedbacks
 					if (typeof self.checkVariables === 'function') {
 						self.checkVariables()
+					}
+
+					// Always re-evaluate feedbacks - this is critical!
+					if (typeof self.checkFeedbacks === 'function') {
+						self.log('debug', `[tracking] Calling checkFeedbacks()`)
+						self.checkFeedbacks()
+					} else {
+						self.log('warn', `[tracking] checkFeedbacks is not a function!`)
 					}
 				} catch (error) {
 					self.log('warn', `Error parsing tracking config: ${error.message}`)
 				}
-			} else {
-				self.log('debug', `Tracking config request returned no data: ${result?.status}`)
 			}
 		} catch (error) {
 			// Silently handle - tracking is optional
-			self.log('debug', `Tracking config fetch failed: ${error.message}`)
 		}
 	},
 
@@ -176,29 +183,22 @@ module.exports = {
 
 		try {
 			const cmd = 'track_info.cgi'
-			self.log('debug', `getCameraTrackingInformation called with cameraIndex: ${cameraIndex}`)
 			const result = await self.sendTrackingRequest(cmd, cameraIndex)
 
 			if (result && result.response && result.response.data) {
 				try {
 					self.data.trackingInformation = result.response.data
-					self.log('debug', `Tracking information updated for camera ${cameraIndex || 'selected'}`)
-					// Update feedbacks and variables when tracking information changes
-					if (typeof self.checkFeedbacksValues === 'function') {
-						self.checkFeedbacksValues()
-					}
+
+					// Update the variables
 					if (typeof self.checkVariables === 'function') {
 						self.checkVariables()
 					}
 				} catch (error) {
 					self.log('warn', `Error parsing tracking info: ${error.message}`)
 				}
-			} else {
-				self.log('debug', `Tracking info request returned no data: ${result?.status}`)
 			}
 		} catch (error) {
 			// Silently handle - tracking is optional
-			self.log('debug', `Tracking info fetch failed: ${error.message}`)
 		}
 	},
 
@@ -207,14 +207,10 @@ module.exports = {
 
 		try {
 			const command = `${base}?${cmd}`
-			self.log('info', `Sending tracking command: ${command} to camera index: ${cameraIndex || 'selected'}`)
 			const result = await self.sendTrackingRequest(command, cameraIndex)
 
 			if (result && result.response && result.response.data) {
-				self.log('info', `Tracking command sent successfully to camera ${cameraIndex || 'selected'}: ${command}`)
 				return true
-			} else {
-				self.log('warn', `Tracking command failed for camera ${cameraIndex || 'selected'}: ${command}`)
 			}
 			return false
 		} catch (error) {

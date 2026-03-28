@@ -107,7 +107,9 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 			presetTimeValue: 2000,
 			presetSpeedValue: 1,
 
-			trackingConfig: {},
+			trackingConfig: {
+				trackingEnable: '0',  // Default to off
+			},
 			trackingInformation: {},
 		}
 
@@ -451,7 +453,9 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 			presetTimeValue: 2000,
 			presetSpeedValue: 1,
 
-			trackingConfig: {},
+			trackingConfig: {
+				trackingEnable: '0',  // Default to off
+			},
 			trackingInformation: {},
 		}
 	}

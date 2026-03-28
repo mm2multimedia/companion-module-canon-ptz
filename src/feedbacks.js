@@ -581,7 +581,6 @@ module.exports = {
 		}
 
 		if (self.config.enableTracking) {
-			self.log('info', `[initFeedbacks] Initializing tracking feedbacks (enableTracking: true)`)
 			//build the auto tracking add on feedbacks if enabled
 			feedbacks.tracking_autotracking = {
 				type: 'boolean',
@@ -606,8 +605,9 @@ module.exports = {
 				callback: function (feedback, bank) {
 					let opt = feedback.options;
 
-					if (self.data.trackingConfig && self.data.trackingConfig.trackingEnable) {
-						if (self.data.trackingConfig.trackingEnable == opt.option) {
+					if (self.data.trackingConfig && self.data.trackingConfig.trackingEnable !== undefined) {
+						// Convert to string for consistent comparison with option values
+						if (String(self.data.trackingConfig.trackingEnable) == opt.option) {
 							return true
 						}
 					}					
@@ -619,21 +619,22 @@ module.exports = {
 			feedbacks.tracking_autotracking_enabled = {
 				type: 'boolean',
 				name: 'Auto Tracking - Is Enabled',
-				description: 'Indicate if Auto Tracking is enabled (blue when on, gray when off)',
+				description: 'Indicate if Auto Tracking is enabled (blue when on)',
 				defaultStyle: {
 					color: foregroundColor,
 					bgcolor: backgroundColorBlue,
 				},
 				options: [],
 				callback: function (feedback, bank) {
-					// Use the exact same logic as the variable conversion
-					const trackingEnable = self.data.trackingConfig?.trackingEnable
-					const isEnabled = trackingEnable == '1'  // Match variable logic exactly
+					try {
+						// Check the raw data directly (same as other feedbacks in this module)
+						const trackingEnable = self.data.trackingConfig?.trackingEnable
+						const result = trackingEnable == '1' || trackingEnable === 1 || trackingEnable === true
 
-					// Log at INFO level so user can see feedback evaluation
-					self.log('info', `[FEEDBACK tracking_autotracking_enabled] trackingEnable: "${trackingEnable}" (type: ${typeof trackingEnable}), isEnabled: ${isEnabled}, returning: ${isEnabled}`)
-
-					return isEnabled
+						return result
+					} catch (e) {
+						return false
+					}
 				},
 			}
 
@@ -1040,21 +1041,30 @@ module.exports = {
 			}
 		}
 
-		self.log('info', `[initFeedbacks] Registering ${Object.keys(feedbacks).length} feedbacks (tracking feedbacks: ${self.config.enableTracking ? 'included' : 'skipped'})`);
 		self.setFeedbackDefinitions(feedbacks);
 	},
 
 	checkFeedbacks: function () {
 		let self = this;
 		try {
+			// Try different method names to trigger feedback re-evaluation
 			if (typeof self.checkFeedbacksValues === 'function') {
-				const trackingEnable = self.data.trackingConfig?.trackingEnable;
-				const isEnabled = trackingEnable == '1';
-				self.log('info', `[checkFeedbacks] Checking feedbacks. Tracking enabled: ${self.config.enableTracking}, trackingEnable: "${trackingEnable}", isEnabled: ${isEnabled}`);
-				self.checkFeedbacksValues();
+				self.log('debug', '[checkFeedbacks] calling checkFeedbacksValues()');
+				self.checkFeedbacksValues()
+			} else if (typeof self.setFeedbacksValues === 'function') {
+				self.log('debug', '[checkFeedbacks] calling setFeedbacksValues()');
+				self.setFeedbacksValues()
+			} else if (typeof self.emitFeedbacks === 'function') {
+				self.log('debug', '[checkFeedbacks] calling emitFeedbacks()');
+				self.emitFeedbacks()
+			} else if (typeof self.updateFeedbackValues === 'function') {
+				self.log('debug', '[checkFeedbacks] calling updateFeedbackValues()');
+				self.updateFeedbackValues()
+			} else {
+				self.log('debug', '[checkFeedbacks] No feedback method found');
 			}
 		} catch (error) {
-			self.log('warn', 'Error checking feedbacks: ' + String(error));
+			self.log('warn', `[checkFeedbacks] Error: ${error.message}`);
 		}
 	}
 }

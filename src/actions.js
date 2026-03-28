@@ -50,6 +50,14 @@ module.exports = {
 					self.currentSelectedCamera = camera.id;
 					self.currentSelectedCameraIndex = parsedIndex;
 				}
+			} else if (self.currentSelectedCameraIndex !== null && self.currentSelectedCameraIndex !== undefined) {
+				// If variable didn't resolve but we have a currentSelectedCameraIndex, use that
+				self.log('debug', `Camera index variable didn't resolve, using currentSelectedCameraIndex: ${self.currentSelectedCameraIndex}`);
+			} else if (self.configuredCameras && self.configuredCameras.length > 0) {
+				// Last resort: use first configured camera
+				self.currentSelectedCameraIndex = self.configuredCameras[0].index;
+				self.currentSelectedCamera = self.configuredCameras[0].id;
+				self.log('debug', `Using fallback camera: index ${self.currentSelectedCameraIndex}`);
 			}
 		}
 	},
@@ -3823,17 +3831,12 @@ module.exports = {
 				name: 'Auto Tracking - Turn On',
 				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
-					self.log('info', `Auto Tracking ON action triggered with camera_index: ${action.options.camera_index}`);
-					// Update selected camera first
 					await self.updateSelectedCamera(action.options.camera_index);
-					self.log('info', `Updated selectedCamera - currentSelectedCameraIndex: ${self.currentSelectedCameraIndex}, currentSelectedCamera: ${self.currentSelectedCamera}`);
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=1'
-					const result = await self.sendTrackingCommand(base, cmd, action.options.camera_index);
-					self.log('info', `Tracking command result: ${result}`);
+					await self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					// Immediately fetch updated status
 					setTimeout(async () => {
-						self.log('info', `Fetching tracking config after ON command...`);
 						await self.getCameraTrackingConfig.bind(self)(self.currentSelectedCameraIndex);
 					}, 200);
 				}
@@ -3843,17 +3846,12 @@ module.exports = {
 				name: 'Auto Tracking - Turn Off',
 				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
-					self.log('info', `Auto Tracking OFF action triggered with camera_index: ${action.options.camera_index}`);
-					// Update selected camera first
 					await self.updateSelectedCamera(action.options.camera_index);
-					self.log('info', `Updated selectedCamera - currentSelectedCameraIndex: ${self.currentSelectedCameraIndex}, currentSelectedCamera: ${self.currentSelectedCamera}`);
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=0'
-					const result = await self.sendTrackingCommand(base, cmd, action.options.camera_index);
-					self.log('info', `Tracking command result: ${result}`);
+					await self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					// Immediately fetch updated status
 					setTimeout(async () => {
-						self.log('info', `Fetching tracking config after OFF command...`);
 						await self.getCameraTrackingConfig.bind(self)(self.currentSelectedCameraIndex);
 					}, 200);
 				}
@@ -3863,22 +3861,15 @@ module.exports = {
 				name: 'Auto Tracking - Toggle On/Off',
 				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
-					self.log('info', `Auto Tracking TOGGLE action triggered with camera_index: ${action.options.camera_index}`);
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable='
 					if (self.data.trackingConfig && self.data.trackingConfig.trackingEnable) {
-						const currentState = self.data.trackingConfig.trackingEnable;
-						self.log('info', `Current trackingEnable state: "${currentState}"`);
-						if (currentState == '1') {
+						if (self.data.trackingConfig.trackingEnable == '1') {
 							cmd += '0'
-							self.log('info', `Toggling from ON to OFF`);
-						}
-						else {
+						} else {
 							cmd += '1'
-							self.log('info', `Toggling from OFF to ON`);
 						}
-						const result = await self.sendTrackingCommand(base, cmd, action.options.camera_index);
-						self.log('info', `Toggle command result: ${result}`);
+						await self.sendTrackingCommand(base, cmd, action.options.camera_index);
 					} else {
 						self.log('warn', 'Cannot toggle - trackingConfig not available')
 					}
