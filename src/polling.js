@@ -84,17 +84,17 @@ module.exports = {
 
 		// Log ALL keys from first 60 polling responses to find meBrightness/correct param
 		if (this.dataByCamera[cameraId] && this.dataByCamera[cameraId].info.length < 60) {
-			self.log('info', `[POLLING #${this.dataByCamera[cameraId].info.length}] ${str[0]}=${str[1]}`)
+			self.log('debug', `[POLLING #${this.dataByCamera[cameraId].info.length}] ${str[0]}=${str[1]}`)
 		}
 
 		// Log brightness-related keys to find the right parameter
 		if (str[0].includes('brightness') || str[0].includes('me.')) {
-			self.log('info', `[BRIGHTNESS] Camera ${cameraId}: ${str[0]}=${str[1]}`)
+			self.log('debug', `[BRIGHTNESS] Camera ${cameraId}: ${str[0]}=${str[1]}`)
 		}
 
 		// Log only AE Shift values
 		if (str[0] === 'c.1.ae.shift') {
-			self.log('info', `<<< AE Shift RECEIVED from camera ${cameraId}: ${str[1]}`)
+			self.log('debug', `<<< AE Shift RECEIVED from camera ${cameraId}: ${str[1]}`)
 		}
 
 		if (!this.dataByCamera[cameraId]) {

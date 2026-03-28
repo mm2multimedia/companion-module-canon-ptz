@@ -676,7 +676,53 @@ module.exports = {
 			}
 		}
 
-		presets.panTiltSelectedCamera = {
+		presets.autoTrackingToggle = {
+		category: 'Pan/Tilt',
+		type: 'button',
+		name: 'Auto Tracking Toggle',
+		style: {
+			text: 'AUTO\\nTRACKING',
+			size: '12',
+			color: '16777215',
+			bgcolor: combineRgb(128, 128, 128),
+		},
+		steps: [
+			{
+				down: [
+					{
+						actionId: 'tracking_autotracking_on',
+						options: {
+							camera_index: '$(canon-ptz-multicam:selectedCameraIndex)'
+						}
+					}
+				],
+				up: []
+			},
+			{
+				down: [
+					{
+						actionId: 'tracking_autotracking_off',
+						options: {
+							camera_index: '$(canon-ptz-multicam:selectedCameraIndex)'
+						}
+					}
+				],
+				up: []
+			},
+		],
+		feedbacks: [
+			{
+				feedbackId: 'tracking_autotracking_enabled',
+				options: {},
+				style: {
+					color: combineRgb(255, 255, 255),
+					bgcolor: combineRgb(0, 112, 192),
+				}
+			}
+		]
+	}
+
+	presets.panTiltSelectedCamera = {
 			category: 'Pan/Tilt',
 			type: 'button',
 			name: 'Selected Camera',

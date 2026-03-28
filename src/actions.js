@@ -29,7 +29,7 @@ module.exports = {
 				type: 'textinput',
 				label: 'Camera Index',
 				id: 'camera_index',
-				default: '1',
+				default: '$(canon-ptz-multicam:selectedCameraIndex)',
 				tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
 			},
 		];
@@ -3823,9 +3823,19 @@ module.exports = {
 				name: 'Auto Tracking - Turn On',
 				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
+					self.log('info', `Auto Tracking ON action triggered with camera_index: ${action.options.camera_index}`);
+					// Update selected camera first
+					await self.updateSelectedCamera(action.options.camera_index);
+					self.log('info', `Updated selectedCamera - currentSelectedCameraIndex: ${self.currentSelectedCameraIndex}, currentSelectedCamera: ${self.currentSelectedCamera}`);
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=1'
-					self.sendTrackingCommand(base, cmd, action.options.camera_index);
+					const result = await self.sendTrackingCommand(base, cmd, action.options.camera_index);
+					self.log('info', `Tracking command result: ${result}`);
+					// Immediately fetch updated status
+					setTimeout(async () => {
+						self.log('info', `Fetching tracking config after ON command...`);
+						await self.getCameraTrackingConfig.bind(self)(self.currentSelectedCameraIndex);
+					}, 200);
 				}
 			}
 
@@ -3833,9 +3843,19 @@ module.exports = {
 				name: 'Auto Tracking - Turn Off',
 				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
+					self.log('info', `Auto Tracking OFF action triggered with camera_index: ${action.options.camera_index}`);
+					// Update selected camera first
+					await self.updateSelectedCamera(action.options.camera_index);
+					self.log('info', `Updated selectedCamera - currentSelectedCameraIndex: ${self.currentSelectedCameraIndex}, currentSelectedCamera: ${self.currentSelectedCamera}`);
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable=0'
-					self.sendTrackingCommand(base, cmd, action.options.camera_index);
+					const result = await self.sendTrackingCommand(base, cmd, action.options.camera_index);
+					self.log('info', `Tracking command result: ${result}`);
+					// Immediately fetch updated status
+					setTimeout(async () => {
+						self.log('info', `Fetching tracking config after OFF command...`);
+						await self.getCameraTrackingConfig.bind(self)(self.currentSelectedCameraIndex);
+					}, 200);
 				}
 			}
 
@@ -3843,16 +3863,24 @@ module.exports = {
 				name: 'Auto Tracking - Toggle On/Off',
 				options: self.getCameraSelectionOptions(),
 				callback: async (action) => {
+					self.log('info', `Auto Tracking TOGGLE action triggered with camera_index: ${action.options.camera_index}`);
 					let base = 'update_config.cgi'
 					let cmd = 'trackingEnable='
 					if (self.data.trackingConfig && self.data.trackingConfig.trackingEnable) {
-						if (self.data.trackingConfig.trackingEnable == '1') {
+						const currentState = self.data.trackingConfig.trackingEnable;
+						self.log('info', `Current trackingEnable state: "${currentState}"`);
+						if (currentState == '1') {
 							cmd += '0'
+							self.log('info', `Toggling from ON to OFF`);
 						}
 						else {
 							cmd += '1'
+							self.log('info', `Toggling from OFF to ON`);
 						}
-						self.sendTrackingCommand(base, cmd, action.options.camera_index);
+						const result = await self.sendTrackingCommand(base, cmd, action.options.camera_index);
+						self.log('info', `Toggle command result: ${result}`);
+					} else {
+						self.log('warn', 'Cannot toggle - trackingConfig not available')
 					}
 				}
 			}

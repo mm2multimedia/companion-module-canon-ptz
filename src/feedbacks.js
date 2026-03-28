@@ -37,6 +37,9 @@ module.exports = {
 		const backgroundColorRed = combineRgb(255, 0, 0) // Red
 		const backgroundColorGreen = combineRgb(0, 255, 0) // Green
 		const backgroundColorOrange = combineRgb(255, 102, 0) // Orange
+		const backgroundColorBlue = combineRgb(0, 112, 192) // Blue
+		const backgroundColorGray = combineRgb(128, 128, 128) // Gray
+		const backgroundColorYellow = combineRgb(255, 204, 0) // Yellow
 
 		if (SERIES.feedbacks.powerState == true) {
 			feedbacks.powerState = {
@@ -578,6 +581,7 @@ module.exports = {
 		}
 
 		if (self.config.enableTracking) {
+			self.log('info', `[initFeedbacks] Initializing tracking feedbacks (enableTracking: true)`)
 			//build the auto tracking add on feedbacks if enabled
 			feedbacks.tracking_autotracking = {
 				type: 'boolean',
@@ -609,6 +613,132 @@ module.exports = {
 					}					
 
 					return false
+				},
+			}
+
+			feedbacks.tracking_autotracking_enabled = {
+				type: 'boolean',
+				name: 'Auto Tracking - Is Enabled',
+				description: 'Indicate if Auto Tracking is enabled (blue when on, gray when off)',
+				defaultStyle: {
+					color: foregroundColor,
+					bgcolor: backgroundColorBlue,
+				},
+				options: [],
+				callback: function (feedback, bank) {
+					// Use the exact same logic as the variable conversion
+					const trackingEnable = self.data.trackingConfig?.trackingEnable
+					const isEnabled = trackingEnable == '1'  // Match variable logic exactly
+
+					// Log at INFO level so user can see feedback evaluation
+					self.log('info', `[FEEDBACK tracking_autotracking_enabled] trackingEnable: "${trackingEnable}" (type: ${typeof trackingEnable}), isEnabled: ${isEnabled}, returning: ${isEnabled}`)
+
+					return isEnabled
+				},
+			}
+
+			feedbacks.tracking_status_off = {
+				type: 'boolean',
+				name: 'Auto Tracking - Status is Off',
+				description: 'Indicate when Auto Tracking is off (gray)',
+				defaultStyle: {
+					color: foregroundColor,
+					bgcolor: backgroundColorGray,
+				},
+				options: [],
+				callback: function (feedback, bank) {
+					const trackingEnable = self.data.trackingConfig?.trackingEnable
+					const isOff = !trackingEnable || trackingEnable == '0' || trackingEnable === 0 || trackingEnable === false
+					return isOff;
+				},
+			}
+
+			feedbacks.tracking_status_tracking = {
+				type: 'boolean',
+				name: 'Auto Tracking - Status is Tracking',
+				description: 'Indicate when actively tracking a target (blue)',
+				defaultStyle: {
+					color: foregroundColor,
+					bgcolor: backgroundColorBlue,
+				},
+				options: [],
+				callback: function (feedback, bank) {
+					// Check if tracking is enabled
+					const trackingEnable = self.data.trackingConfig?.trackingEnable
+					const isEnabled = trackingEnable == '1' || trackingEnable === 1 || trackingEnable === true
+
+					if (isEnabled) {
+						if (self.data.trackingInformation && self.data.trackingInformation.tracking_info) {
+							// track_result == '0' means tracking/locked
+							const trackResult = self.data.trackingInformation.tracking_info.track_result
+							if (trackResult == '0' || trackResult === 0) {
+								return true;
+							}
+						}
+					}
+					return false;
+				},
+			}
+
+			feedbacks.tracking_status_searching = {
+				type: 'boolean',
+				name: 'Auto Tracking - Status is Searching',
+				description: 'Indicate when searching for a target (orange)',
+				defaultStyle: {
+					color: foregroundColor,
+					bgcolor: backgroundColorOrange,
+				},
+				options: [],
+				callback: function (feedback, bank) {
+					// Check if tracking is enabled
+					const trackingEnable = self.data.trackingConfig?.trackingEnable
+					const isEnabled = trackingEnable == '1' || trackingEnable === 1 || trackingEnable === true
+
+					if (isEnabled) {
+						if (self.data.trackingInformation && self.data.trackingInformation.tracking_info) {
+							// track_result != '0' means not locked (could be searching)
+							const trackResult = self.data.trackingInformation.tracking_info.track_result
+							if (trackResult != '0' && trackResult !== 0) {
+								// Check if targets are detected
+								const detectionNum = self.data.trackingInformation.detection_info?.detection_num
+								if (detectionNum && detectionNum > 0) {
+									return true;
+								}
+							}
+						}
+					}
+					return false;
+				},
+			}
+
+			feedbacks.tracking_status_lost = {
+				type: 'boolean',
+				name: 'Auto Tracking - Status is Lost',
+				description: 'Indicate when target lock is lost (red)',
+				defaultStyle: {
+					color: foregroundColor,
+					bgcolor: backgroundColorRed,
+				},
+				options: [],
+				callback: function (feedback, bank) {
+					// Check if tracking is enabled
+					const trackingEnable = self.data.trackingConfig?.trackingEnable
+					const isEnabled = trackingEnable == '1' || trackingEnable === 1 || trackingEnable === true
+
+					if (isEnabled) {
+						if (self.data.trackingInformation && self.data.trackingInformation.tracking_info) {
+							// track_result != '0' means not locked
+							const trackResult = self.data.trackingInformation.tracking_info.track_result
+							if (trackResult != '0' && trackResult !== 0) {
+								// Check if no targets are detected
+								const detectionNum = self.data.trackingInformation.detection_info?.detection_num
+								if (!detectionNum || detectionNum == 0) {
+									return true;
+								}
+							}
+						}
+					}
+					return false;
 				},
 			}
 
@@ -910,6 +1040,7 @@ module.exports = {
 			}
 		}
 
+		self.log('info', `[initFeedbacks] Registering ${Object.keys(feedbacks).length} feedbacks (tracking feedbacks: ${self.config.enableTracking ? 'included' : 'skipped'})`);
 		self.setFeedbackDefinitions(feedbacks);
 	},
 
@@ -917,6 +1048,9 @@ module.exports = {
 		let self = this;
 		try {
 			if (typeof self.checkFeedbacksValues === 'function') {
+				const trackingEnable = self.data.trackingConfig?.trackingEnable;
+				const isEnabled = trackingEnable == '1';
+				self.log('info', `[checkFeedbacks] Checking feedbacks. Tracking enabled: ${self.config.enableTracking}, trackingEnable: "${trackingEnable}", isEnabled: ${isEnabled}`);
 				self.checkFeedbacksValues();
 			}
 		} catch (error) {
