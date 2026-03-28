@@ -89,6 +89,7 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 			gainValue: 10,
 			ndfilterValue: '0',
 			pedestalValue: '',
+			aeShiftValue: 0,
 
 			//White Balance
 			whitebalanceMode: 'auto',
@@ -145,6 +146,8 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 		this.ndfilterIndex = 0
 		this.pedestalValue = 0
 		this.pedestalIndex = 51
+		this.aeShiftValue = 0
+		this.aeShiftIndex = 8
 		this.whitebalanceModeIndex = 0
 		this.kelvinIndex = 0
 		this.kelvinValue = 2820
@@ -430,6 +433,7 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 			gainValue: 10,
 			ndfilterValue: '0',
 			pedestalValue: '',
+			aeShiftValue: 0,
 
 			// White Balance
 			whitebalanceMode: 'auto',

@@ -49,6 +49,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -98,6 +99,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_CRN() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_CRN() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_CRN() },
+				aeShift: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AESHIFT_CRN() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_CRN() },
 				iris: { cmd: 'me.diaphragm=', dropdown: c.CHOICES_IRIS_CRN() },
@@ -148,6 +150,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -197,6 +200,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_CRN() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_CRN() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_CRN() },
+				aeShift: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AESHIFT_CRN() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_CRN() },
 				iris: { cmd: 'me.diaphragm=', dropdown: c.CHOICES_IRIS_CRN() },
@@ -247,6 +251,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -296,6 +301,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_CRN() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_CRN() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_CRN() },
+				aeShift: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AESHIFT_CRN() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_CRN() },
 				iris: { cmd: 'me.diaphragm=', dropdown: c.CHOICES_IRIS_CRN() },
@@ -346,6 +352,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -395,6 +402,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_CRN() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_CRN() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_CRN() },
+				aeShift: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AESHIFT_CRN() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_CRN() },
 				iris: { cmd: 'me.diaphragm=', dropdown: c.CHOICES_IRIS_CRN() },
@@ -445,6 +453,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -494,6 +503,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_CRN() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_CRN() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_CRN() },
+				aeShift: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AESHIFT_CRN() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_CRN() },
 				iris: { cmd: 'c.1.me.diaphragm=', dropdown: c.CHOICES_IRIS_CRN() },
@@ -544,6 +554,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -593,6 +604,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_CRN() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_CRN() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_CRN() },
+				aeShift: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AESHIFT_CRN() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_CRN() },
 				iris: { cmd: 'c.1.me.diaphragm=', dropdown: c.CHOICES_IRIS_CRN() },
@@ -637,6 +649,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -687,6 +700,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_OTHER() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_OTHER() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_OTHER() },
+				aeShift: { cmd: 'c.1.ae.shift=', dropdown: c.CHOICES_AESHIFT_OTHER() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_OTHER() }, // Has Shutter Support
 				iris: { cmd: 'c.1.me.diaphragm=', dropdown: c.CHOICES_IRIS_OTHER() },
@@ -731,6 +745,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -781,6 +796,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_OTHER() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_OTHER() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_OTHER() },
+				aeShift: { cmd: 'c.1.ae.shift=', dropdown: c.CHOICES_AESHIFT_OTHER() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_OTHER() }, // Has Shutter Support
 				iris: { cmd: 'c.1.me.diaphragm=', dropdown: c.CHOICES_IRIS_OTHER() },
@@ -825,6 +841,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -875,6 +892,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_OTHER() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_OTHER() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_OTHER() },
+				aeShift: { cmd: 'c.1.ae.shift=', dropdown: c.CHOICES_AESHIFT_OTHER() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_OTHER() }, // Has Shutter Support
 				iris: { cmd: 'c.1.me.diaphragm=', dropdown: c.CHOICES_IRIS_OTHER() },
@@ -919,6 +937,7 @@ module.exports = {
 				gainValue: true, //gain value
 				ndfilterValue: true, //neutral density value
 				pedestalValue: true, //pedestal value
+			aeShiftValue: true, //ae shift value
 				//white balance
 				whitebalanceMode: true, //white balance mode auto, manual, wb_a, wb_b, daylight, tungsten, kelvin
 				kelvinValue: true, //current kelvin value
@@ -969,6 +988,7 @@ module.exports = {
 				aeBrightness: { cmd: 'c.1.ae.brightness=', dropdown: c.CHOICES_AEBRIGHTNESS_OTHER() },
 				aePhotometry: { cmd: 'c.1.ae.photometry=', dropdown: c.CHOICES_AEPHOTOMETRY_OTHER() },
 				aeFlickerReduct: { cmd: 'c.1.ae.flickerreduct=', dropdown: c.CHOICES_AEFLICKERREDUCT_OTHER() },
+				aeShift: { cmd: 'c.1.ae.shift=', dropdown: c.CHOICES_AESHIFT_OTHER() },
 				aeResp: true,
 				shutter: { cmd: 'c.1.me.shutter=', dropdown: c.CHOICES_SHUTTER_OTHER() }, // Has Shutter Support
 				iris: { cmd: 'c.1.me.diaphragm=', dropdown: c.CHOICES_IRIS_OTHER() },

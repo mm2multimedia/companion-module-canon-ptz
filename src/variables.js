@@ -145,6 +145,9 @@ module.exports = {
 		if (SERIES.variables.pedestalValue == true) {
 			variables.push({ variableId: 'pedestalValue', name: 'Pedestal Value' })
 		}
+		if (SERIES.variables.aeShiftValue == true) {
+			variables.push({ variableId: 'aeShiftValue', name: 'AE Shift Value' })
+		}
 
 		//White Balance
 		if (SERIES.variables.whitebalanceMode == true) {
@@ -482,6 +485,33 @@ module.exports = {
 				variableValues.pedestalValue = pedestalValue;
 			}
 
+			if (SERIES.variables.aeShiftValue == true) {
+				let index;
+				let aeShiftValue = self.data.aeShiftValue;
+
+			// Get the value from the selected camera's data
+			if (self.currentSelectedCamera && self.dataByCamera[self.currentSelectedCamera]) {
+				aeShiftValue = self.dataByCamera[self.currentSelectedCamera].aeShiftValue || self.data.aeShiftValue;
+			}
+				if (SERIES.actions.aeShift.dropdown) {
+					index = SERIES.actions.aeShift.dropdown.findIndex((AESHIFT) => AESHIFT.id == aeShiftValue);
+					self.aeShiftIndex = index;
+					let aeShift = SERIES.actions.aeShift.dropdown[self.aeShiftIndex];
+					if (aeShift) {
+						aeShiftValue = aeShift.label;
+					}
+				}
+				else {
+					index = c.CHOICES_AESHIFT_OTHER().findIndex((AESHIFT) => AESHIFT.id == self.data.aeShiftValue);
+					self.aeShiftIndex = index;
+					let aeShift = SERIES.actions.aeShift.dropdown[self.aeShiftIndex];
+					if (aeShift) {
+						aeShiftValue = aeShift.label;
+					}
+				}
+				variableValues.aeShiftValue = aeShiftValue;
+			}
+
 			//White Balance
 			if (SERIES.variables.whitebalanceMode == true) {
 				let wbmode = SERIES.actions.whitebalanceMode.dropdown.find((WBMODE) => WBMODE.id == self.data.whitebalanceMode);
@@ -528,7 +558,7 @@ module.exports = {
 					selectedCameraId = Object.keys(self.dataByCamera)[0];
 				}
 
-				self.log('info', `Resolving preset names for camera: ${selectedCameraId}`);
+				self.log('debug', `Resolving preset names for camera: ${selectedCameraId}`);
 
 				for (let i = 1; i <= 100; i++) {
 					// Get preset name from selected camera's polling data
@@ -538,7 +568,7 @@ module.exports = {
 						// Also set the "current camera" variable
 						variableValues[`currentCameraPresetname_${i}`] = presetName;
 						if (i <= 5) {
-							self.log('info', `✓ Set presetname_${i} = "${presetName}" (currentCameraPresetname_${i})`);
+							self.log('debug', `Preset ${i}: "${presetName}"`);
 						}
 					} else {
 						// If no camera data, default to preset number

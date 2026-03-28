@@ -227,6 +227,37 @@ module.exports = {
 	},
 
 	// ##########################
+	// #### AE Shift Look Ups ####
+	// ##########################
+
+	CHOICES_AESHIFT_CRN: function () {
+		var list = [-2.0, -1.75, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+
+		return this.CHOICES_AESHIFT_BUILD(list);
+	},
+
+	CHOICES_AESHIFT_OTHER: function () {
+		var list = [-2.0, -1.75, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+
+		return this.CHOICES_AESHIFT_BUILD(list);
+	},
+
+	CHOICES_AESHIFT_BUILD: function (list) {
+		var p = [];
+
+		for (let i = 0; i < list.length; i++) {
+			let label = list[i].toFixed(2);
+
+			p.push({
+				id: list[i],
+				label: label
+			})
+		}
+
+		return p
+	},
+
+	// ##########################
 	// #### Shutter Look Ups ####
 	// ##########################
 

@@ -102,7 +102,10 @@ module.exports = {
 
 				let cmd = `${command}${str}`
 
-				if (self.config.verbose) {
+				// Log AE Shift commands at INFO level for visibility
+				if (cmd.includes('ae.shift')) {
+					self.log('info', `>>> CAMERA COMMAND: ${cmd} (to ${cameraIP})`);
+				} else if (self.config.verbose) {
 					self.log('debug', `Sending PTZ command to camera index ${resolvedIndex} (${cameraIP}): ${cmd}`);
 				}
 
@@ -248,6 +251,8 @@ module.exports = {
 					self.checkVariables();
 					self.checkFeedbacks();
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -261,6 +266,8 @@ module.exports = {
 					self.checkVariables();
 					self.checkFeedbacks();
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -280,6 +287,8 @@ module.exports = {
 					self.checkVariables();
 					self.checkFeedbacks();
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -319,6 +328,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -330,6 +341,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.data.tallyProgram = 'on';
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -347,6 +360,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -358,6 +373,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.data.tallyPreview = 'on';
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -377,6 +394,8 @@ module.exports = {
 					}	
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -414,6 +433,8 @@ module.exports = {
 					}
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -451,6 +472,8 @@ module.exports = {
 					}
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -760,6 +783,8 @@ module.exports = {
 					self.ptSpeed = c.CHOICES_PT_SPEED[self.ptSpeedIndex].id
 					self.data.panTiltSpeedValue = self.ptSpeed;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -775,6 +800,8 @@ module.exports = {
 					self.ptSpeed = c.CHOICES_PT_SPEED[self.ptSpeedIndex].id
 					self.data.panTiltSpeedValue = self.ptSpeed;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -811,6 +838,8 @@ module.exports = {
 					self.ptSpeed = c.CHOICES_PT_SPEED[self.ptSpeedIndex].id
 					self.data.panTiltSpeedValue = self.ptSpeed;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -933,6 +962,8 @@ module.exports = {
 					self.zSpeed = c.CHOICES_ZOOM_SPEED()[self.zSpeedIndex].id
 					self.data.zoomSpeed = self.zSpeed;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -948,6 +979,8 @@ module.exports = {
 					self.zSpeed = c.CHOICES_ZOOM_SPEED()[self.zSpeedIndex].id
 					self.data.zoomSpeed = self.zSpeed;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -963,6 +996,8 @@ module.exports = {
 					self.zSpeed = c.CHOICES_ZOOM_SPEED()[self.zSpeedIndex].id
 					self.data.zoomSpeed = self.zSpeed;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1035,6 +1070,8 @@ module.exports = {
 					cmd = 'focus.speed=' + self.data.focusSpeed;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1055,6 +1092,8 @@ module.exports = {
 					cmd = 'focus.speed=' + self.data.focusSpeed;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1075,6 +1114,8 @@ module.exports = {
 					cmd = 'focus.speed=' + self.data.focusSpeed;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1096,6 +1137,8 @@ module.exports = {
 					cmd = 'focus.speed=' + self.data.focusSpeed;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1133,6 +1176,8 @@ module.exports = {
 					}
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1149,6 +1194,8 @@ module.exports = {
 					cmd = 'focus=' + self.data.focusMode;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1192,6 +1239,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 										
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1223,6 +1272,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.exposureMode = action.options.val;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1259,6 +1310,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}		
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1292,6 +1345,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeGainLimitMax = action.options.val;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1320,6 +1375,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeBrightness = action.options.val;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1348,6 +1405,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aePhotometry = action.options.val;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1376,6 +1435,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeFlickerReduct = action.options.val;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1409,6 +1470,8 @@ module.exports = {
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.data.aeResp = action.options.val;
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1448,6 +1511,8 @@ module.exports = {
 					}
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1464,6 +1529,8 @@ module.exports = {
 					cmd = 'c.1.me.shutter.mode=' + self.data.shutterMode;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1498,6 +1565,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1533,6 +1602,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1571,6 +1642,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1627,6 +1700,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1677,6 +1752,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1715,6 +1792,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1748,6 +1827,8 @@ module.exports = {
 					}
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1764,6 +1845,8 @@ module.exports = {
 					cmd = 'c.1.me.diaphragm.mode=' + self.data.irisMode;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1804,6 +1887,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1838,6 +1923,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1854,6 +1941,8 @@ module.exports = {
 					cmd = 'c.1.me.gain.mode=' + self.data.gainMode;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1887,6 +1976,8 @@ module.exports = {
 					}
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1926,6 +2017,8 @@ module.exports = {
 						self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					}
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -1949,6 +2042,8 @@ module.exports = {
 					cmd = s.ndfilter.cmd + self.ndfilterValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1966,6 +2061,8 @@ module.exports = {
 					cmd = s.ndfilter.cmd + self.ndfilterValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -1994,6 +2091,8 @@ module.exports = {
 					cmd = s.ndfilter.cmd + self.ndfilterValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -2025,6 +2124,8 @@ module.exports = {
 					cmd = s.pedestal.cmd + self.pedestalValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2050,6 +2151,8 @@ module.exports = {
 					cmd = s.pedestal.cmd + self.pedestalValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2078,6 +2181,192 @@ module.exports = {
 					cmd = s.pedestal.cmd + self.pedestalValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
+				}
+			}
+		}
+
+		// ##########################
+		// #### AE Shift Actions ####
+		// ##########################
+
+		if (s.aeShift.cmd) {
+			if (s.aeShift.dropdown === undefined) {
+				if (s.series == 'Other') {
+					s.aeShift.dropdown = c.CHOICES_AESHIFT_OTHER();
+				} else {
+					s.aeShift.dropdown = c.CHOICES_AESHIFT_CRN();
+				}
+			}
+
+			actions.aeShiftUp = {
+				name: 'Exposure - AE Shift Up',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
+				callback: async (action) => {
+					// Get camera index - use system-selected camera if input is blank
+					let cameraIndex = action.options.camera_index;
+					if (!cameraIndex || cameraIndex.toString().trim() === '') {
+						cameraIndex = self.currentSelectedCameraIndex
+					}
+
+					if (!cameraIndex) {
+						self.log('warn', 'No camera selected for AE Shift Up (use System - Select Camera or provide Camera Index)')
+						return
+					}
+
+					// Update selected camera for future actions
+					await self.updateSelectedCamera(cameraIndex)
+					const cameraId = self.currentSelectedCamera
+
+					if (!cameraId || !self.dataByCamera[cameraId]) {
+						self.log('warn', 'Camera not found for AE Shift Up')
+						return
+					}
+
+					// Get current value from dataByCamera
+					let currentValue = self.dataByCamera[cameraId].aeShiftValue || 0
+					let aeShiftIndex = s.aeShift.dropdown.findIndex((item) => item.id == currentValue)
+					if (aeShiftIndex === -1) {
+						aeShiftIndex = 8 // Default to middle (0.0)
+					}
+
+					// Increment
+					if (aeShiftIndex < s.aeShift.dropdown.length - 1) {
+						aeShiftIndex++
+					}
+
+					const newValue = s.aeShift.dropdown[aeShiftIndex].id
+					self.dataByCamera[cameraId].aeShiftValue = newValue
+					self.data.aeShiftValue = newValue
+
+					const brightnessValue = newValue * 4
+				cmd = s.aeShift.cmd + brightnessValue
+					self.log('info', `AE Shift Up → ${newValue} [brightness: ${brightnessValue}]`)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
+					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
+				}
+			}
+
+			actions.aeShiftDown = {
+				name: 'Exposure - AE Shift Down',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					}
+				],
+				callback: async (action) => {
+					// Get camera index - use system-selected camera if input is blank
+					let cameraIndex = action.options.camera_index;
+					if (!cameraIndex || cameraIndex.toString().trim() === '') {
+						cameraIndex = self.currentSelectedCameraIndex
+					}
+
+					if (!cameraIndex) {
+						self.log('warn', 'No camera selected for AE Shift Down (use System - Select Camera or provide Camera Index)')
+						return
+					}
+
+					// Update selected camera for future actions
+					await self.updateSelectedCamera(cameraIndex)
+					const cameraId = self.currentSelectedCamera
+
+					if (!cameraId || !self.dataByCamera[cameraId]) {
+						self.log('warn', 'Camera not found for AE Shift Down')
+						return
+					}
+
+					// Get current value from dataByCamera
+					let currentValue = self.dataByCamera[cameraId].aeShiftValue || 0
+					let aeShiftIndex = s.aeShift.dropdown.findIndex((item) => item.id == currentValue)
+					if (aeShiftIndex === -1) {
+						aeShiftIndex = 8 // Default to middle (0.0)
+					}
+
+					// Decrement
+					if (aeShiftIndex > 0) {
+						aeShiftIndex--
+					}
+
+					const newValue = s.aeShift.dropdown[aeShiftIndex].id
+					self.dataByCamera[cameraId].aeShiftValue = newValue
+					self.data.aeShiftValue = newValue
+
+				const brightnessValue = newValue * 4
+				cmd = s.aeShift.cmd + brightnessValue
+					self.log('info', `AE Shift Down → ${newValue} [brightness: ${brightnessValue}]`)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
+					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
+				}
+			}
+
+			actions.aeShiftSet = {
+				name: 'Exposure - Set AE Shift',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Camera Index',
+						id: 'camera_index',
+						default: '1',
+						tooltip: 'Enter camera index number (1-4) or variable like $(custom:selectedCameraIndex)',
+					},
+					{
+						type: 'dropdown',
+						label: 'AE Shift Value',
+						id: 'val',
+						default: s.aeShift.dropdown[8].id,
+						choices: s.aeShift.dropdown,
+					},
+				],
+				callback: async (action) => {
+					// Get camera index - use system-selected camera if input is blank
+					let cameraIndex = action.options.camera_index;
+					if (!cameraIndex || cameraIndex.toString().trim() === '') {
+						cameraIndex = self.currentSelectedCameraIndex
+					}
+
+					if (!cameraIndex) {
+						self.log('warn', 'No camera selected for AE Shift Set (use System - Select Camera or provide Camera Index)')
+						return
+					}
+
+					// Update selected camera for future actions
+					await self.updateSelectedCamera(cameraIndex)
+					const cameraId = self.currentSelectedCamera
+
+					if (!cameraId || !self.dataByCamera[cameraId]) {
+						self.log('warn', 'Camera not found for AE Shift Set')
+						return
+					}
+
+					const currentValue = self.dataByCamera[cameraId].aeShiftValue || 0
+					const newValue = action.options.val
+					self.dataByCamera[cameraId].aeShiftValue = newValue
+					self.data.aeShiftValue = newValue
+
+					const brightnessValue = newValue * 4
+					cmd = s.aeShift.cmd + brightnessValue
+					self.log('info', `AE Shift Set → ${newValue} [brightness: ${brightnessValue}]`)
+					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
+					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -2113,6 +2402,8 @@ module.exports = {
 					cmd = s.whitebalanceMode.cmd + action.options.val;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2138,6 +2429,8 @@ module.exports = {
 					cmd = s.whitebalanceMode.cmd + self.data.whitebalanceMode;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2163,6 +2456,8 @@ module.exports = {
 					cmd = 'c.1.wb.action=one_shot_' + action.options.mode;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -2185,6 +2480,8 @@ module.exports = {
 					cmd = s.kelvin.cmd + self.kelvinValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2202,6 +2499,8 @@ module.exports = {
 					cmd = s.kelvin.cmd + self.kelvinValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2230,6 +2529,8 @@ module.exports = {
 					cmd = s.kelvin.cmd + self.kelvinValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -2252,6 +2553,8 @@ module.exports = {
 					cmd = s.rGain.cmd + self.rGainValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2269,6 +2572,8 @@ module.exports = {
 					cmd = s.rGain.cmd + self.rGainValue
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2297,6 +2602,8 @@ module.exports = {
 					cmd = s.rGain.cmd + self.rGainValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}
@@ -2319,6 +2626,8 @@ module.exports = {
 					cmd = s.bGain.cmd + self.bGainValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2336,6 +2645,8 @@ module.exports = {
 					cmd = s.bGain.cmd + self.bGainValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index)
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 
@@ -2364,6 +2675,8 @@ module.exports = {
 					cmd = s.bGain.cmd + self.bGainValue;
 					self.sendPTZ(self.ptzCommand, cmd, action.options.camera_index);
 					self.getCameraInformation_Delayed();
+					self.checkVariables()
+					self.checkFeedbacks()
 				}
 			}
 		}

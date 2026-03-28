@@ -82,9 +82,19 @@ module.exports = {
 		let self = this
 		this.dataByCamera ??= {}
 
-		// Log all data keys for debugging (first few lines only)
-		if (str[0] && this.dataByCamera[cameraId] && this.dataByCamera[cameraId].info.length < 20) {
-			self.log('debug', `Camera ${cameraId} data: ${str[0]}=${str[1]}`)
+		// Log ALL keys from first 60 polling responses to find meBrightness/correct param
+		if (this.dataByCamera[cameraId] && this.dataByCamera[cameraId].info.length < 60) {
+			self.log('info', `[POLLING #${this.dataByCamera[cameraId].info.length}] ${str[0]}=${str[1]}`)
+		}
+
+		// Log brightness-related keys to find the right parameter
+		if (str[0].includes('brightness') || str[0].includes('me.')) {
+			self.log('info', `[BRIGHTNESS] Camera ${cameraId}: ${str[0]}=${str[1]}`)
+		}
+
+		// Log only AE Shift values
+		if (str[0] === 'c.1.ae.shift') {
+			self.log('info', `<<< AE Shift RECEIVED from camera ${cameraId}: ${str[1]}`)
 		}
 
 		if (!this.dataByCamera[cameraId]) {
@@ -123,6 +133,7 @@ module.exports = {
 				gainValue: 10,
 				ndfilterValue: '0',
 				pedestalValue: '',
+				aeShiftValue: 0,
 				whitebalanceMode: 'auto',
 				whitebalanceModeListString: '',
 				whitebalanceModeList: null,
@@ -283,6 +294,9 @@ module.exports = {
 				case 'c.1.blacklevel':
 					this.dataByCamera[cameraId].pedestalValue = str[1]
 					break
+				case 'c.1.ae.brightness':
+					this.dataByCamera[cameraId].aeShiftValue = parseFloat(str[1]) / 4
+					break
 
 				// White Balance
 				case 'c.1.wb':
@@ -330,7 +344,7 @@ module.exports = {
 									this.dataByCamera[cameraId].presetNames = {}
 								}
 								this.dataByCamera[cameraId].presetNames[presetNumber] = str[1]
-								self.log('info', `✓ Stored preset ${presetNumber} name "${str[1]}" from camera ${cameraId}`)
+								self.log('debug', `Preset ${presetNumber}: "${str[1]}")`)
 								// Update variables when preset names change
 								self.checkVariables()
 							}

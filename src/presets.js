@@ -2109,6 +2109,62 @@ module.exports = {
 		}
 
 		// ##########################
+		// #### AE Shift Presets ####
+		// ##########################
+
+		if (s.aeShift.cmd) {
+			presets.aeShiftUp = {
+				category: 'Exposure',
+				type: 'button',
+				name: 'AE Shift Up',
+				style: {
+
+					text: 'AE Shift\\nUP',
+					size: '14',
+					color: '16777215',
+					bgcolor: combineRgb(0, 0, 0),
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'aeShiftUp',
+								options: {}
+							}
+						],
+						up: []
+					},
+				],
+				feedbacks: [],
+			}
+
+			presets.aeShiftDown = {
+				category: 'Exposure',
+				type: 'button',
+				name: 'AE Shift Down',
+				style: {
+
+					text: 'AE Shift\\nDOWN',
+					size: '14',
+					color: '16777215',
+					bgcolor: combineRgb(0, 0, 0)
+				},
+				steps: [
+					{
+						down: [
+							{
+								actionId: 'aeShiftDown',
+								options: {}
+							}
+						],
+						up: []
+					},
+				],
+				feedbacks: [],
+			}
+		}
+
+		// ##########################
 		// #### White Balance Presets ####
 		// ##########################
 
