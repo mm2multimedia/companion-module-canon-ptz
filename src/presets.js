@@ -676,6 +676,58 @@ module.exports = {
 			}
 		}
 
+		presets.panTiltSelectedCamera = {
+			category: 'Pan/Tilt',
+			type: 'button',
+			name: 'Selected Camera',
+			style: {
+				text: '$(canon-ptz-multicam:selectedCameraName)',
+				size: 'auto',
+				color: '16777215',
+				bgcolor: combineRgb(0, 0, 0),
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'home',
+							options: {
+								camera_index: '$(canon-ptz-multicam:selectedCameraIndex)'
+							}
+						}
+					],
+					up: []
+				},
+			],
+			feedbacks: []
+		}
+
+		presets.panTiltSelectedCameraIndex = {
+			category: 'Pan/Tilt',
+			type: 'button',
+			name: 'Selected Camera Index',
+			style: {
+				text: '$(canon-ptz-multicam:selectedCameraIndex)',
+				size: 'auto',
+				color: '16777215',
+				bgcolor: combineRgb(0, 0, 0),
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'home',
+							options: {
+								camera_index: '$(canon-ptz-multicam:selectedCameraIndex)'
+							}
+						}
+					],
+					up: []
+				},
+			],
+			feedbacks: []
+		}
+
 		if (s.ptSpeed == true) {
 			presets.ptSpeedUp = {
 				category: 'Pan/Tilt',

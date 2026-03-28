@@ -58,6 +58,8 @@ module.exports = {
 
 		variables.push({ variableId: 'cameraIP', name: 'Camera IP' })
 		variables.push({ variableId: 'cameraIPLastOctet', name: 'Camera IP Last Octet' })
+		variables.push({ variableId: 'selectedCameraName', name: 'System - Select Camera' })
+		variables.push({ variableId: 'selectedCameraIndex', name: 'System - Select Camera Index' })
 
 		//System
 		if (SERIES.variables.powerState == true) {
@@ -269,6 +271,19 @@ module.exports = {
 
 			variableValues.series = self.data.series;
 			variableValues.model = self.data.model;
+
+			// Get selected camera name for dynamic preset display
+			let selectedCameraName = 'No Camera';
+			let selectedCameraIndex = '';
+			if (self.currentSelectedCameraIndex !== null && self.currentSelectedCameraIndex !== undefined) {
+				const cameraDef = self.getCameraDefByIndex(self.currentSelectedCameraIndex);
+				if (cameraDef) {
+					selectedCameraName = `Cam ${cameraDef.index} (${cameraDef.ip})`;
+					selectedCameraIndex = String(cameraDef.index);
+				}
+			}
+			variableValues.selectedCameraName = selectedCameraName;
+			variableValues.selectedCameraIndex = selectedCameraIndex;
 
 			//System
 			variableValues.cameraName = self.data.cameraName;
