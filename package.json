@@ -2,7 +2,7 @@
 	"name": "companion-module-canon-ptz-multicam",
 	"shortname": "canon-ptz-multicam",
 	"description": "Canon PTZ module with dynamic multi-camera support",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"main": "src/index.js",
 	"scripts": {
 		"build": "rm -rf dist && mkdir -p dist && cp -r src/* dist/ && cp companion/manifest.json dist/manifest.json && sed -i '' 's|../src/||' dist/manifest.json",
@@ -19,5 +19,6 @@
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.6.1"
-	}
+	},
+	"packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538"
 }

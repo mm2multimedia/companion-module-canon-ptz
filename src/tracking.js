@@ -2,6 +2,33 @@ const { InstanceStatus } = require('@companion-module/base')
 const axios = require('axios')
 
 module.exports = {
+	isCameraInStandby(cameraIndex) {
+		let self = this
+
+		if (!cameraIndex) {
+			return true // Assume standby if no camera index
+		}
+
+		// Get the camera definition to find its ID
+		const cameraDef = self.getCameraDefByIndex(cameraIndex)
+		if (!cameraDef) {
+			return true // Assume standby if camera not found
+		}
+
+		// Get the camera's power state from dataByCamera
+		const cameraData = self.dataByCamera[cameraDef.id]
+		if (!cameraData) {
+			return true // Assume standby if no camera data yet
+		}
+
+		// The powerState is populated from the camera's f.standby field
+		// When the camera is in standby/off, this value will be something like 'on'
+		// When the camera is powered on, this value will be empty or 'off'
+		// So we check if powerState equals 'on' (which means camera is in standby)
+		const isInStandby = cameraData.powerState === 'on'
+		return isInStandby
+	},
+
 	initTrackingPolling() {
 		let self = this
 
@@ -18,6 +45,12 @@ module.exports = {
 				try {
 					// Only poll if we have a selected camera
 					if (self.currentSelectedCameraIndex !== null && self.currentSelectedCameraIndex !== undefined) {
+						// Skip tracking requests if camera is in standby
+						if (self.isCameraInStandby(self.currentSelectedCameraIndex)) {
+							self.log('debug', `Skipping tracking request - camera ${self.currentSelectedCameraIndex} is in standby`)
+							return
+						}
+
 						self.getCameraTrackingConfig.bind(self)(self.currentSelectedCameraIndex)
 						self.getCameraTrackingInformation.bind(self)(self.currentSelectedCameraIndex)
 						pollAttempts = 0 // Reset counter when polling succeeds
