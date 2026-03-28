@@ -379,6 +379,7 @@ class CanonPTZMultiCamInstance extends InstanceBase {
 	createDefaultCameraData() {
 		return {
 			info: [],
+			isOnline: false, // Track if camera is reachable
 			modelDetected: '',
 			cameraName: '',
 			powerState: '',

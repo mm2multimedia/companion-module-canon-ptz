@@ -18,13 +18,25 @@ module.exports = {
 		// Get the camera's power state from dataByCamera
 		const cameraData = self.dataByCamera[cameraDef.id]
 		if (!cameraData) {
+			self.log('debug', `[Tracking] No camera data for ${cameraDef.id} - skipping requests`)
 			return true // Assume standby if no camera data yet
+		}
+
+		// If camera has not been successfully reached yet (no data from polling), skip tracking requests
+		if (!cameraData.info || cameraData.info.length === 0) {
+			self.log('debug', `[Tracking] No polling data for camera ${cameraDef.id} - skipping requests`)
+			return true // Assume standby if camera hasn't been polled yet
+		}
+
+		// If camera is not online (not reachable), skip tracking requests
+		if (cameraData.isOnline === false) {
+			self.log('debug', `[Tracking] Camera ${cameraDef.id} is offline - skipping requests`)
+			return true // Assume standby if camera is offline
 		}
 
 		// The powerState is populated from the camera's f.standby field
 		// When the camera is in standby/off, this value will be something like 'on'
 		// When the camera is powered on, this value will be empty or 'off'
-		// So we check if powerState equals 'on' (which means camera is in standby)
 		const isInStandby = cameraData.powerState === 'on'
 		return isInStandby
 	},
@@ -158,7 +170,7 @@ module.exports = {
 				response: response,
 			}
 		} catch (err) {
-			self.log('warn', `Tracking request failed: ${requestUrl} - Error: ${err.message}`)
+			self.log('debug', `Tracking request failed: ${requestUrl} - Error: ${err.message}`)
 			return {
 				status: 'failed',
 				error: err.message,

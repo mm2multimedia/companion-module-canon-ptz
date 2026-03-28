@@ -62,10 +62,19 @@ module.exports = {
 			result = await connection.sendRequest('info.cgi')
 		} catch (e) {
 			this.log('warn', `Camera ${cameraId} not reachable`)
+			// Mark camera as offline
+			if (this.dataByCamera[cameraId]) {
+				this.dataByCamera[cameraId].isOnline = false
+			}
 			return
 		}
 
 		if (!result || !result.response || !result.response.data) return
+
+		// Mark camera as online since we successfully got data
+		if (this.dataByCamera[cameraId]) {
+			this.dataByCamera[cameraId].isOnline = true
+		}
 
 		const lines = String(result.response.data).split('\n')
 
@@ -100,6 +109,7 @@ module.exports = {
 		if (!this.dataByCamera[cameraId]) {
 			this.dataByCamera[cameraId] = {
 				info: [],
+				isOnline: false, // Track if camera is reachable
 				modelDetected: '',
 				cameraName: '',
 				powerState: '',
